@@ -1,5 +1,25 @@
 // --- Validation ---
-function validateSymbolsInput(text) {}
+function validateSymbolsInput(text) {
+  if (!text) {
+    return { ok: false, msg: "Please enter at least 1 symbol (e.g., !@#$)." };
+  }
+
+  if (/\s/.test(text)) {
+    return { ok: false, msg: "Spaces are not allowed in the symbols set." };
+  }
+
+  if (/[a-zA-Z0-9]/.test(text)) {
+    return { ok: false, msg: "Symbols must not include letters (A–Z) or digits (0–9)." };
+  }
+
+  const unique = [...new Set(text)].join("");
+  if (!unique) {
+    return { ok: false, msg: "Your symbols set is empty after validation. Please add at least 1 symbol." };
+  }
+
+  return { ok: true, symbols: unique };
+}
+
 
 // --- Charset builder ---
 function getCharset(options) {
@@ -8,6 +28,7 @@ function getCharset(options) {
   if (options.useLower) pool += "abcdefghijklmnopqrstuvwxyz";
   if (options.useUpper) pool += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   if (options.useDigits) pool += "0123456789";
+  if (options.useSymbols) pool += options.symbols;
 
   if (!pool) {
     return { ok: false, msg: "Select at least one character type to generate a password." };
@@ -123,8 +144,59 @@ document.addEventListener("keydown", (e) => {
 
 
 function handleGenerate() {
-  console.log("Generate clicked");
+  // Clear previous errors
+  lengthError.textContent = "";
+  symbolError.textContent = "";
+  copyError.textContent = "";
+  presetInfo.textContent = "";
+
+  // Read length
+  const length = Number(lengthInput.value);
+  if (Number.isNaN(length) || length < 4 || length > 64) {
+    lengthError.textContent = "Password length must be between 4 and 64.";
+    return;
+  }
+
+  // Read character type selections
+  const options = {
+    length,
+    useLower: lowercaseCheckbox.checked,
+    useUpper: uppercaseCheckbox.checked,
+    useDigits: digitsCheckbox.checked,
+    useSymbols: symbolsCheckbox.checked,
+    symbols: ""
+  };
+
+  // Validate symbols if enabled
+  if (options.useSymbols) {
+    const result = validateSymbolsInput(customSymbolsInput.value);
+    if (!result.ok) {
+      symbolError.textContent = result.msg;
+      return;
+    }
+    options.symbols = result.symbols;
+  }
+
+  // Build charset
+  const charsetResult = getCharset(options);
+  if (!charsetResult.ok) {
+    symbolError.textContent = charsetResult.msg;
+    return;
+  }
+
+  const pool = charsetResult.pool;
+
+  // Generate password
+  const password = generatePassword({ length, pool });
+
+  // Show password
+  passwordInput.value = password;
+
+  // Reset strength bar (entropy comes later)
+  strengthLabelEl.textContent = "";
+  strengthBarEl.style.background = "#475569";
 }
+
 
 function handleClear() {
   passwordInput.value = "";
