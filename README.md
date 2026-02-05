@@ -81,3 +81,9 @@ https://mytherapy-coding.github.io/Password-Generator/
 ## 📄 License
 
 This project is open‑source and available under the MIT License.
+
+---
+## 🖼️ Screenshot
+
+![Password Generator Screenshot](./screenshot.png)
+
