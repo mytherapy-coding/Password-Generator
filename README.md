@@ -74,7 +74,7 @@ Strength levels:
 Once published with GitHub Pages, your live link will go here:
 
 
-
+https://mytherapy-coding.github.io/Password-Generator/
 
 ---
 
