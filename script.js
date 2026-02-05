@@ -88,8 +88,16 @@ function randomIndex(max) {
 
 
 // --- Entropy + strength ---
-function calculateEntropyBits(length, poolSize) {}
-function strengthLabel(bits) {}
+function calculateEntropyBits(length, poolSize) {
+  return length * Math.log2(poolSize);
+}
+
+function strengthLabel(bits) {
+  if (bits < 45) return { label: "Weak", color: "red" };
+  if (bits < 70) return { label: "Medium", color: "orange" };
+  return { label: "Strong", color: "green" };
+}
+
 
 // --- Clipboard ---
 async function copyToClipboard(text) {
@@ -223,7 +231,16 @@ document.addEventListener("keydown", (e) => {
 });
 
 
-function handleGenerate() {
+// Calculate entropy
+const bits = calculateEntropyBits(length, pool.length);
+const strength = strengthLabel(bits);
+
+// Show strength
+strengthLabelEl.textContent = `Strength: ${strength.label}`;
+strengthBarEl.style.background = strength.color;
+
+passwordInput.value = password;
+
   // Clear previous errors
   lengthError.textContent = "";
   symbolError.textContent = "";
