@@ -92,7 +92,19 @@ function calculateEntropyBits(length, poolSize) {}
 function strengthLabel(bits) {}
 
 // --- Clipboard ---
-async function copyToClipboard(text) {}
+async function copyToClipboard(text) {
+  if (!text) {
+    return { ok: false, msg: "Generate a password first." };
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    return { ok: true };
+  } catch {
+    return { ok: false, msg: "Could not copy. Please copy manually." };
+  }
+}
+
 
 // --- Main handler ---
 // iCloud preset mode
@@ -153,7 +165,28 @@ if (icloudPresetCheckbox.checked) {
 }
 
 function handleClear() {}
-function handleCopy() {}
+async function handleCopy() {
+  copyError.textContent = "";
+
+  const text = passwordInput.value.trim();
+  const result = await copyToClipboard(text);
+
+  if (!result.ok) {
+    copyError.textContent = result.msg;
+    return;
+  }
+
+  // Show success message
+  copyError.style.color = "#38bdf8"; // light blue
+  copyError.textContent = "Copied!";
+  
+  // Reset color after a moment
+  setTimeout(() => {
+    copyError.textContent = "";
+    copyError.style.color = "#f87171"; // back to red for errors
+  }, 1500);
+}
+
 
 // --- DOM elements ---
 const lengthInput = document.getElementById("length");
