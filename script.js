@@ -172,17 +172,29 @@ if (icloudPresetCheckbox.checked) {
   strengthBarEl.style.background = "#475569";
 }
 
-function handleClear() {}
-async function handleCopy() {
+function handleClear() {
+  // Clear password
+  passwordInput.value = "";
+
+  // Clear strength
+  strengthLabelEl.textContent = "";
+  strengthBarEl.style.background = "#475569";
+
+  // Clear errors
+  lengthError.textContent = "";
+  symbolError.textContent = "";
   copyError.textContent = "";
+  presetInfo.textContent = "";
 
-  const text = passwordInput.value.trim();
-  const result = await copyToClipboard(text);
-
-  if (!result.ok) {
-    copyError.textContent = result.msg;
-    return;
-  }
+  // Optional: reset inputs (you can keep or remove these)
+  // lengthInput.value = 16;
+  // lowercaseCheckbox.checked = true;
+  // uppercaseCheckbox.checked = true;
+  // digitsCheckbox.checked = true;
+  // symbolsCheckbox.checked = false;
+  // customSymbolsInput.value = "";
+  // icloudPresetCheckbox.checked = false;
+}
 
   // Show success message
   copyError.style.color = "#38bdf8"; // light blue
