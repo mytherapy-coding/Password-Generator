@@ -115,152 +115,18 @@ async function copyToClipboard(text) {
 
 
 // --- Main handler ---
-// iCloud preset mode
-if (icloudPresetCheckbox.checked) {
-  presetInfo.textContent = "iCloud preset is active: length and character sets are fixed.";
+function handleGenerate() {
+  // iCloud preset mode
+  if (icloudPresetCheckbox.checked) {
+    presetInfo.textContent = "iCloud preset is active: length and character sets are fixed.";
 
-  const password = generateIcloudPassword();
-  passwordInput.value = password;
+    const password = generateIcloudPassword();
+    passwordInput.value = password;
 
-  // Apple passwords are always strong
-  strengthLabelEl.textContent = "Strength: Strong";
-  strengthBarEl.style.background = "green";
-
-  return;
-}
-
-  // Clear previous errors
-  lengthError.textContent = "";
-  symbolError.textContent = "";
-  copyError.textContent = "";
-  presetInfo.textContent = "";
-
-  // Read length
-  const length = Number(lengthInput.value);
-  if (Number.isNaN(length) || length < 4 || length > 64) {
-    lengthError.textContent = "Password length must be between 4 and 64.";
+    strengthLabelEl.textContent = "Strength: Strong";
+    strengthBarEl.style.background = "green";
     return;
   }
-
-  // Read character type selections
-  const options = {
-    length,
-    useLower: lowercaseCheckbox.checked,
-    useUpper: uppercaseCheckbox.checked,
-    useDigits: digitsCheckbox.checked,
-    useSymbols: false, // symbols come later
-    symbols: ""
-  };
-
-  // Build charset
-  const charsetResult = getCharset(options);
-  if (!charsetResult.ok) {
-    symbolError.textContent = charsetResult.msg;
-    return;
-  }
-
-  const pool = charsetResult.pool;
-
-  // Generate password
-  const password = generatePassword({ length, pool });
-
-  // Show password
-  passwordInput.value = password;
-
-  // Reset strength bar for now (entropy comes later)
-  strengthLabelEl.textContent = "";
-  strengthBarEl.style.background = "#475569";
-}
-
-function handleClear() {
-  // Clear password
-  passwordInput.value = "";
-
-  // Clear strength
-  strengthLabelEl.textContent = "";
-  strengthBarEl.style.background = "#475569";
-
-  // Clear errors
-  lengthError.textContent = "";
-  symbolError.textContent = "";
-  copyError.textContent = "";
-  presetInfo.textContent = "";
-
-  // Optional: reset inputs (you can keep or remove these)
-  // lengthInput.value = 16;
-  // lowercaseCheckbox.checked = true;
-  // uppercaseCheckbox.checked = true;
-  // digitsCheckbox.checked = true;
-  // symbolsCheckbox.checked = false;
-  // customSymbolsInput.value = "";
-  // icloudPresetCheckbox.checked = false;
-}
-
-  // Show success message
-  copyError.style.color = "#38bdf8"; // light blue
-  copyError.textContent = "Copied!";
-  
-  // Reset color after a moment
-  setTimeout(() => {
-    copyError.textContent = "";
-    copyError.style.color = "#f87171"; // back to red for errors
-  }, 1500);
-}
-
-
-// --- DOM elements ---
-const lengthInput = document.getElementById("length");
-const lowercaseCheckbox = document.getElementById("lowercase");
-const uppercaseCheckbox = document.getElementById("uppercase");
-const digitsCheckbox = document.getElementById("digits");
-const symbolsCheckbox = document.getElementById("symbols");
-const customSymbolsInput = document.getElementById("customSymbols");
-const icloudPresetCheckbox = document.getElementById("icloudPreset");
-
-const passwordInput = document.getElementById("password");
-const strengthLabelEl = document.getElementById("strengthLabel");
-const strengthBarEl = document.getElementById("strengthBar");
-
-const lengthError = document.getElementById("lengthError");
-const symbolError = document.getElementById("symbolError");
-const copyError = document.getElementById("copyError");
-const presetInfo = document.getElementById("presetInfo");
-
-const generateBtn = document.getElementById("generate");
-const clearBtn = document.getElementById("clear");
-const copyBtn = document.getElementById("copy");
-
-// --- Event listeners ---
-generateBtn.addEventListener("click", handleGenerate);
-clearBtn.addEventListener("click", handleClear);
-copyBtn.addEventListener("click", handleCopy);
-
-lengthInput.addEventListener("input", updateGenerateButtonState);
-lowercaseCheckbox.addEventListener("change", updateGenerateButtonState);
-uppercaseCheckbox.addEventListener("change", updateGenerateButtonState);
-digitsCheckbox.addEventListener("change", updateGenerateButtonState);
-symbolsCheckbox.addEventListener("change", updateGenerateButtonState);
-customSymbolsInput.addEventListener("input", updateGenerateButtonState);
-icloudPresetCheckbox.addEventListener("change", updateGenerateButtonState);
-
-
-// Press Enter to generate
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && document.activeElement !== customSymbolsInput) {
-    handleGenerate();
-  }
-});
-
-
-// Calculate entropy
-const bits = calculateEntropyBits(length, pool.length);
-const strength = strengthLabel(bits);
-
-// Show strength
-strengthLabelEl.textContent = `Strength: ${strength.label}`;
-strengthBarEl.style.background = strength.color;
-
-passwordInput.value = password;
 
   // Clear previous errors
   lengthError.textContent = "";
@@ -306,16 +172,18 @@ passwordInput.value = password;
 
   // Generate password
   const password = generatePassword({ length, pool });
-
-  // Show password
   passwordInput.value = password;
 
-  // Reset strength bar (entropy comes later)
-  strengthLabelEl.textContent = "";
-  strengthBarEl.style.background = "#475569";
+  // Calculate entropy
+  const bits = calculateEntropyBits(length, pool.length);
+  const strength = strengthLabel(bits);
+
+  strengthLabelEl.textContent = `Strength: ${strength.label}`;
+  strengthBarEl.style.background = strength.color;
 }
 
 
+// --- Clear ---
 function handleClear() {
   passwordInput.value = "";
   strengthLabelEl.textContent = "";
@@ -326,10 +194,73 @@ function handleClear() {
   presetInfo.textContent = "";
 }
 
+
+// --- Copy ---
 async function handleCopy() {
-  console.log("Copy clicked");
+  const text = passwordInput.value.trim();
+  const result = await copyToClipboard(text);
+
+  if (!result.ok) {
+    copyError.textContent = result.msg;
+    return;
+  }
+
+  copyError.style.color = "#38bdf8";
+  copyError.textContent = "Copied!";
+
+  setTimeout(() => {
+    copyError.textContent = "";
+    copyError.style.color = "#f87171";
+  }, 1500);
 }
 
+
+// --- DOM elements ---
+const lengthInput = document.getElementById("length");
+const lowercaseCheckbox = document.getElementById("lowercase");
+const uppercaseCheckbox = document.getElementById("uppercase");
+const digitsCheckbox = document.getElementById("digits");
+const symbolsCheckbox = document.getElementById("symbols");
+const customSymbolsInput = document.getElementById("customSymbols");
+const icloudPresetCheckbox = document.getElementById("icloudPreset");
+
+const passwordInput = document.getElementById("password");
+const strengthLabelEl = document.getElementById("strengthLabel");
+const strengthBarEl = document.getElementById("strengthBar");
+
+const lengthError = document.getElementById("lengthError");
+const symbolError = document.getElementById("symbolError");
+const copyError = document.getElementById("copyError");
+const presetInfo = document.getElementById("presetInfo");
+
+const generateBtn = document.getElementById("generate");
+const clearBtn = document.getElementById("clear");
+const copyBtn = document.getElementById("copy");
+
+
+// --- Event listeners ---
+generateBtn.addEventListener("click", handleGenerate);
+clearBtn.addEventListener("click", handleClear);
+copyBtn.addEventListener("click", handleCopy);
+
+lengthInput.addEventListener("input", updateGenerateButtonState);
+lowercaseCheckbox.addEventListener("change", updateGenerateButtonState);
+uppercaseCheckbox.addEventListener("change", updateGenerateButtonState);
+digitsCheckbox.addEventListener("change", updateGenerateButtonState);
+symbolsCheckbox.addEventListener("change", updateGenerateButtonState);
+customSymbolsInput.addEventListener("input", updateGenerateButtonState);
+icloudPresetCheckbox.addEventListener("change", updateGenerateButtonState);
+
+
+// Press Enter to generate
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && document.activeElement !== customSymbolsInput) {
+    handleGenerate();
+  }
+});
+
+
+// --- Real-time button state ---
 function updateGenerateButtonState() {
   const length = Number(lengthInput.value);
   const lengthValid = !Number.isNaN(length) && length >= 4 && length <= 64;
@@ -346,7 +277,6 @@ function updateGenerateButtonState() {
     symbolsValid = result.ok;
   }
 
-  // iCloud preset overrides everything
   if (icloudPresetCheckbox.checked) {
     generateBtn.disabled = false;
     return;
@@ -355,3 +285,4 @@ function updateGenerateButtonState() {
   generateBtn.disabled = !(lengthValid && anyCharset && symbolsValid);
 }
 
+updateGenerateButtonState();
