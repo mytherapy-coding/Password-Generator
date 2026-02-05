@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Password Generator</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <main class="container">
+    <h1>Password Generator</h1>
+
+    <!-- Length -->
+    <label>
+      Password length:
+      <input id="length" type="number" min="4" max="64" value="16" />
+    </label>
+    <p id="lengthError" class="error"></p>
+
+    <!-- Character types -->
+    <div class="checkboxes">
+      <label><input id="lowercase" type="checkbox" checked /> Lowercase (a–z)</label>
+      <label><input id="uppercase" type="checkbox" checked /> Uppercase (A–Z)</label>
+      <label><input id="digits" type="checkbox" checked /> Numbers (0–9)</label>
+      <label><input id="symbols" type="checkbox" /> Symbols</label>
+    </div>
+
+    <!-- Custom symbols -->
+    <label>
+      Symbols to use:
+      <input id="customSymbols" type="text" placeholder="!@#$%^&*-" />
+    </label>
+    <p id="symbolError" class="error"></p>
+
+    <!-- iCloud preset -->
+    <label>
+      <input id="icloudPreset" type="checkbox" />
+      Use iCloud‑style preset (Apple)
+    </label>
+    <p id="presetInfo" class="info"></p>
+
+    <!-- Output -->
+    <label for="password">Generated password:</label>
+    <div class="password-row">
+      <input id="password" type="text" readonly />
+      <button id="copy">Copy</button>
+    </div>
+    <p id="copyError" class="error"></p>
+
+    <!-- Strength -->
+    <p id="strengthLabel"></p>
+    <div id="strengthBar"></div>
+
+    <!-- Actions -->
+    <button id="generate">Generate Password</button>
+    <button id="clear">Clear</button>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
