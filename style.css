@@ -121,3 +121,12 @@ button:disabled {
   font-size: 14px;
   margin-top: 4px;
 }
+
+.footer {
+  margin-top: 40px;
+  padding: 16px 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  border-top: 1px solid #e2e8f0;
+}
