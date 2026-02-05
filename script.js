@@ -235,6 +235,15 @@ generateBtn.addEventListener("click", handleGenerate);
 clearBtn.addEventListener("click", handleClear);
 copyBtn.addEventListener("click", handleCopy);
 
+lengthInput.addEventListener("input", updateGenerateButtonState);
+lowercaseCheckbox.addEventListener("change", updateGenerateButtonState);
+uppercaseCheckbox.addEventListener("change", updateGenerateButtonState);
+digitsCheckbox.addEventListener("change", updateGenerateButtonState);
+symbolsCheckbox.addEventListener("change", updateGenerateButtonState);
+customSymbolsInput.addEventListener("input", updateGenerateButtonState);
+icloudPresetCheckbox.addEventListener("change", updateGenerateButtonState);
+
+
 // Press Enter to generate
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && document.activeElement !== customSymbolsInput) {
@@ -320,3 +329,29 @@ function handleClear() {
 async function handleCopy() {
   console.log("Copy clicked");
 }
+
+function updateGenerateButtonState() {
+  const length = Number(lengthInput.value);
+  const lengthValid = !Number.isNaN(length) && length >= 4 && length <= 64;
+
+  const anyCharset =
+    lowercaseCheckbox.checked ||
+    uppercaseCheckbox.checked ||
+    digitsCheckbox.checked ||
+    symbolsCheckbox.checked;
+
+  let symbolsValid = true;
+  if (symbolsCheckbox.checked) {
+    const result = validateSymbolsInput(customSymbolsInput.value);
+    symbolsValid = result.ok;
+  }
+
+  // iCloud preset overrides everything
+  if (icloudPresetCheckbox.checked) {
+    generateBtn.disabled = false;
+    return;
+  }
+
+  generateBtn.disabled = !(lengthValid && anyCharset && symbolsValid);
+}
+
