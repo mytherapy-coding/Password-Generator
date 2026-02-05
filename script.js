@@ -51,7 +51,41 @@ function generatePassword(options) {
   return chars.join("");
 }
 
-function generateIcloudPassword() {}
+function generateIcloudPassword() {
+  const lower = "abcdefghijklmnopqrstuvwxyz";
+  const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+
+  const chars = [];
+
+  // 16 lowercase
+  for (let i = 0; i < 16; i++) {
+    chars.push(lower[randomIndex(lower.length)]);
+  }
+
+  // 1 uppercase
+  chars.push(upper[randomIndex(upper.length)]);
+
+  // 1 digit
+  chars.push(digits[randomIndex(digits.length)]);
+
+  // 2 hyphens
+  chars.push("-");
+  chars.push("-");
+
+  // Shuffle
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = randomIndex(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join("");
+}
+
+function randomIndex(max) {
+  return crypto.getRandomValues(new Uint32Array(1))[0] % max;
+}
+
 
 // --- Entropy + strength ---
 function calculateEntropyBits(length, poolSize) {}
@@ -61,7 +95,20 @@ function strengthLabel(bits) {}
 async function copyToClipboard(text) {}
 
 // --- Main handler ---
-ffunction handleGenerate() {
+// iCloud preset mode
+if (icloudPresetCheckbox.checked) {
+  presetInfo.textContent = "iCloud preset is active: length and character sets are fixed.";
+
+  const password = generateIcloudPassword();
+  passwordInput.value = password;
+
+  // Apple passwords are always strong
+  strengthLabelEl.textContent = "Strength: Strong";
+  strengthBarEl.style.background = "green";
+
+  return;
+}
+
   // Clear previous errors
   lengthError.textContent = "";
   symbolError.textContent = "";
