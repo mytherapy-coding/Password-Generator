@@ -1,3 +1,19 @@
+const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
+const VOWELS = "aeiouy";
+const DIGITS = "0123456789";
+const DEFAULT_SYMBOLS = "!@#$%^&*()-_=+[]{};:,.<>/?";
+
+function randomInt(max) {
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return arr[0] % max;
+}
+
+function pick(pool) {
+  return pool[randomInt(pool.length)];
+}
+
+
 // --- Validation ---
 function validateSymbolsInput(text) {
   if (!text) {
