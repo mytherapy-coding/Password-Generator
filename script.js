@@ -317,6 +317,55 @@ if (options.useSymbols) {
   strengthBarEl.style.background = strength.color;
 }
 
+function handleGenerateUserIds() {
+  // Clear previous output
+  uidError.textContent = "";
+  uidResults.innerHTML = "";
+
+  // Read options from UI
+  const options = {
+    syllables: Number(uidSyllables.value),
+    addDigits: uidAddDigits.checked,
+    digitsCount: Number(uidDigitsCount.value),
+    addSuffix: uidAddSuffix.checked,
+    suffix: normalizeSuffix(uidSuffix.value),
+    maxLength: Number(uidMaxLength.value)
+  };
+
+  // Validate options
+  const validation = validateUserIdOptions(options);
+  if (!validation.ok) {
+    uidError.textContent = validation.msg;
+    return;
+  }
+
+  // Generate list
+  const count = Number(uidCount.value);
+  const result = generateUserIdList(options, count);
+
+  if (!result.ok) {
+    uidError.textContent = result.msg;
+    return;
+  }
+
+  // Render results
+  result.list.forEach(id => {
+    const row = document.createElement("div");
+    row.className = "uid-row";
+
+    const span = document.createElement("span");
+    span.textContent = id;
+
+    const btn = document.createElement("button");
+    btn.textContent = "Copy";
+    btn.addEventListener("click", () => copyToClipboard(id));
+
+    row.appendChild(span);
+    row.appendChild(btn);
+    uidResults.appendChild(row);
+  });
+}
+
 
 // --- Clear ---
 function handleClear() {
