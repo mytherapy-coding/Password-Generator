@@ -87,3 +87,67 @@ This project is open‑source and available under the MIT License.
 
 ![Password Generator Screenshot](./screenshot.png)
 
+## 🆔 User ID Generator 
+
+This project includes a fully featured **User ID / handle generator** that creates readable, pronounceable usernames using a secure CVC (consonant–vowel–consonant) pattern.
+
+### ✨ Features
+
+- Generates usernames using **2 or 3 CVC syllables**
+  - Examples: `mivako`, `tovemi`, `geratosi`
+- Optional **digits** appended at the end (2 or 3)
+  - Example: `mivako27`
+- Optional **suffix** with underscore
+  - Example: `mivako_dev`
+- User‑controlled **maximum length** with validation
+- Generates **multiple suggestions at once** (5, 10, or 20)
+- Each suggestion includes a **Copy** button
+- Uses **crypto.getRandomValues()** for secure randomness
+- Inline error handling:
+  - Invalid suffix characters
+  - Max length too small
+  - Safety cap when valid IDs cannot be generated
+
+### 🧠 How It Works
+
+The generator builds usernames using this pattern:
+
+CVC + CVC (+ CVC) + digits? + _suffix?
+
+
+Where:
+
+- **C** = consonant  
+- **V** = vowel  
+- Digits and suffix are optional  
+- The final username must:
+  - Start with a letter  
+  - Fit within the max length  
+  - Contain only allowed characters  
+
+### 🎛️ UI Behavior
+
+- Digits count input enables/disables automatically  
+- Suffix input enables/disables automatically  
+- Pressing **Enter** inside the User ID section regenerates suggestions  
+- Results are displayed in a styled list with monospace usernames and copy buttons  
+
+### 📋 Example Output
+
+mivako
+tovemi
+geratosi
+mivako27
+mivako_dev
+
+### 🧩 Technologies Used
+
+- Vanilla JavaScript  
+- Secure randomness via `crypto.getRandomValues()`  
+- DOM manipulation for dynamic UI updates  
+- CSS for layout and styling  
+
+### ✔ Status
+
+
+User ID generator fully implemented, validated, styled, and documented.
