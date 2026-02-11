@@ -67,36 +67,53 @@ function generatePassword(options) {
   return chars.join("");
 }
 
-function generateIcloudPassword() {
-  const lower = "abcdefghijklmnopqrstuvwxyz";
-  const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const digits = "0123456789";
-
-  const chars = [];
-
-  // 16 lowercase
-  for (let i = 0; i < 16; i++) {
-    chars.push(lower[randomIndex(lower.length)]);
-  }
-
-  // 1 uppercase
-  chars.push(upper[randomIndex(upper.length)]);
-
-  // 1 digit
-  chars.push(digits[randomIndex(digits.length)]);
-
-  // 2 hyphens
-  chars.push("-");
-  chars.push("-");
-
-  // Shuffle
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = randomIndex(i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-
-  return chars.join("");
+function generateSyllable() {
+  return pick(CONSONANTS) + pick(VOWELS) + pick(CONSONANTS);
 }
+
+function generateChunk6() {
+  return generateSyllable() + generateSyllable(); // CVC + CVC
+}
+
+function generateIcloudPassword() {
+  // 1) Build 3 chunks
+  let chunks = [
+    generateChunk6(),
+    generateChunk6(),
+    generateChunk6()
+  ];
+
+  let password = chunks.join("-"); // XXXXXX-XXXXXX-XXXXXX
+
+  // 2) Insert digit near hyphens or end
+  const candidatePositions = [];
+  for (let i = 0; i < password.length; i++) {
+    if (password[i] === "-") {
+      if (i - 1 >= 0) candidatePositions.push(i - 1);
+      if (i + 1 < password.length) candidatePositions.push(i + 1);
+    }
+  }
+  candidatePositions.push(password.length - 1);
+
+  const digitPos = randomInt(candidatePositions.length);
+  const digit = pick(DIGITS);
+  password = password.slice(0, candidatePositions[digitPos]) + digit + password.slice(candidatePositions[digitPos] + 1);
+
+  // 3) Insert uppercase (not hyphen, not digit)
+  const validUpperPositions = [];
+  for (let i = 0; i < password.length; i++) {
+    const ch = password[i];
+    if (ch === "-" || /\d/.test(ch)) continue;
+    validUpperPositions.push(i);
+  }
+
+  const upperPos = randomInt(validUpperPositions.length);
+  const upperChar = password[validUpperPositions[upperPos]].toUpperCase();
+  password = password.slice(0, validUpperPositions[upperPos]) + upperChar + password.slice(validUpperPositions[upperPos] + 1);
+
+  return password;
+}
+
 
 function randomIndex(max) {
   return crypto.getRandomValues(new Uint32Array(1))[0] % max;
