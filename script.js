@@ -113,6 +113,86 @@ function generateIcloudPassword() {
   return password;
 }
 
+// --- User ID generator core logic ---
+function generateCvcStem(syllablesCount) {
+  let stem = "";
+  for (let i = 0; i < syllablesCount; i++) {
+    stem += pick(CONSONANTS) + pick(VOWELS) + pick(CONSONANTS);
+  }
+  return stem;
+}
+
+function normalizeSuffix(text) {
+  return text.trim().toLowerCase();
+}
+
+function validateUserIdOptions(options) {
+  const { syllables, addDigits, digitsCount, addSuffix, suffix, maxLength } = options;
+
+  // Validate suffix
+  if (addSuffix && suffix.length > 0) {
+    if (/[^a-z0-9]/i.test(suffix)) {
+      return { ok: false, msg: "Suffix can contain only letters and digits." };
+    }
+  }
+
+  // Minimum length calculation
+  const base = 3 * syllables;
+  const digits = addDigits ? digitsCount : 0;
+  const suffixLen = addSuffix && suffix.length > 0 ? (1 + suffix.length) : 0;
+
+  const minLen = base + digits + suffixLen;
+
+  if (maxLength < minLen) {
+    return { ok: false, msg: "Max length is too small for the selected options." };
+  }
+
+  return { ok: true };
+}
+
+function generateUserId(options) {
+  const { syllables, addDigits, digitsCount, addSuffix, suffix, maxLength } = options;
+
+  let id = generateCvcStem(syllables);
+
+  // Add digits
+  if (addDigits) {
+    for (let i = 0; i < digitsCount; i++) {
+      id += pick(DIGITS);
+    }
+  }
+
+  // Add suffix
+  if (addSuffix && suffix.length > 0) {
+    id += "_" + suffix;
+  }
+
+  // Must start with a letter
+  if (!/^[a-z]/.test(id)) return null;
+
+  // Must fit max length
+  if (id.length > maxLength) return null;
+
+  return id;
+}
+
+function generateUserIdList(options, count) {
+  const results = new Set();
+  let attempts = 0;
+
+  while (results.size < count && attempts < 50) {
+    const id = generateUserId(options);
+    if (id) results.add(id);
+    attempts++;
+  }
+
+  if (results.size < count) {
+    return { ok: false, msg: "Could not generate valid usernames with current rules. Try increasing max length." };
+  }
+
+  return { ok: true, list: Array.from(results) };
+}
+
 
 
 
