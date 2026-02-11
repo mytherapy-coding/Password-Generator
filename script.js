@@ -57,14 +57,13 @@ function getCharset(options) {
 // --- Generators ---
 function generatePassword(options) {
   const { length, pool } = options;
-  const chars = [];
+  let result = "";
 
   for (let i = 0; i < length; i++) {
-    const idx = crypto.getRandomValues(new Uint32Array(1))[0] % pool.length;
-    chars.push(pool[idx]);
+    result += pick(pool);
   }
 
-  return chars.join("");
+  return result;
 }
 
 function generateSyllable() {
@@ -115,9 +114,6 @@ function generateIcloudPassword() {
 }
 
 
-function randomIndex(max) {
-  return crypto.getRandomValues(new Uint32Array(1))[0] % max;
-}
 
 
 // --- Entropy + strength ---
