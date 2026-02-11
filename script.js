@@ -144,6 +144,23 @@ async function copyToClipboard(text) {
 
 
 // --- Main handler ---
+
+function updateIcloudUIState() {
+  const on = icloudPresetCheckbox.checked;
+
+  lengthInput.disabled = on;
+  lowercaseCheckbox.disabled = on;
+  uppercaseCheckbox.disabled = on;
+  digitsCheckbox.disabled = on;
+  symbolsCheckbox.disabled = on;
+  customSymbolsInput.disabled = on;
+
+  presetInfo.textContent = on
+    ? "iCloud preset is active: settings are fixed."
+    : "";
+}
+
+
 function handleGenerate() {
   // iCloud preset mode
   if (icloudPresetCheckbox.checked) {
@@ -278,7 +295,10 @@ uppercaseCheckbox.addEventListener("change", updateGenerateButtonState);
 digitsCheckbox.addEventListener("change", updateGenerateButtonState);
 symbolsCheckbox.addEventListener("change", updateGenerateButtonState);
 customSymbolsInput.addEventListener("input", updateGenerateButtonState);
-icloudPresetCheckbox.addEventListener("change", updateGenerateButtonState);
+icloudPresetCheckbox.addEventListener("change", () => {
+  updateIcloudUIState();
+  updateGenerateButtonState();
+});
 
 
 // Press Enter to generate
@@ -315,3 +335,5 @@ function updateGenerateButtonState() {
 }
 
 updateGenerateButtonState();
+updateIcloudUIState();
+
