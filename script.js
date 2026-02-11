@@ -309,6 +309,17 @@ icloudPresetCheckbox.addEventListener("change", () => {
   updateGenerateButtonState();
 });
 
+// --- User ID section listeners ---
+uidAddDigits.addEventListener("change", () => {
+  uidDigitsCount.disabled = !uidAddDigits.checked;
+});
+
+uidAddSuffix.addEventListener("change", () => {
+  uidSuffix.disabled = !uidAddSuffix.checked;
+});
+
+uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
+
 
 // Press Enter to generate
 document.addEventListener("keydown", (e) => {
