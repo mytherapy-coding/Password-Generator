@@ -457,6 +457,25 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// Press Enter to generate User IDs when focused in the User ID section
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+
+  const active = document.activeElement;
+
+  // If the active element is inside the User ID section, generate User IDs
+  if (
+    active === uidSyllables ||
+    active === uidDigitsCount ||
+    active === uidSuffix ||
+    active === uidMaxLength ||
+    active === uidCount ||
+    active === uidAddDigits ||
+    active === uidAddSuffix
+  ) {
+    handleGenerateUserIds();
+  }
+});
 
 // --- Real-time button state ---
 function updateGenerateButtonState() {
