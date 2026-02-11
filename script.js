@@ -198,14 +198,23 @@ function handleGenerate() {
   };
 
   // Validate symbols if enabled
-  if (options.useSymbols) {
-    const result = validateSymbolsInput(customSymbolsInput.value);
+if (options.useSymbols) {
+  const raw = customSymbolsInput.value.trim();
+
+  if (raw === "") {
+    // Use default symbols when field is empty
+    options.symbols = DEFAULT_SYMBOLS;
+  } else {
+    // Validate user-provided symbols
+    const result = validateSymbolsInput(raw);
     if (!result.ok) {
       symbolError.textContent = result.msg;
       return;
     }
     options.symbols = result.symbols;
   }
+}
+
 
   // Build charset
   const charsetResult = getCharset(options);
