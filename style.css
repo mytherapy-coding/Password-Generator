@@ -130,3 +130,56 @@ button:disabled {
   font-size: 14px;
   border-top: 1px solid #e2e8f0;
 }
+
+/* --- User ID Generator Styles --- */
+
+.userid-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #1e293b;
+  border-radius: 8px;
+}
+
+.userid-section h2 {
+  margin-bottom: 1rem;
+  color: #38bdf8;
+}
+
+.userid-section label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+#uidResults {
+  margin-top: 1.5rem;
+}
+
+.uid-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.uid-row span {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #e2e8f0;
+}
+
+.uid-row button {
+  padding: 0.25rem 0.75rem;
+  background: #38bdf8;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #0f172a;
+  font-weight: bold;
+}
+
+.uid-row button:hover {
+  background: #7dd3fc;
+}
