@@ -3,68 +3,131 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Password Generator</title>
-
-  <link rel="icon" href="favicon.png?v=2" />
-
-  <link rel="stylesheet" href="./style.css" />
+  <title>Password & User ID Generator</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <main class="container"> 
 
+  <main class="container">
+
+    <p class="top-credit">Made by Alena • 2026</p>
     <h1>Password Generator</h1>
 
-    <!-- Length -->
-    <label>
-      Password length:
-      <input id="length" type="number" min="4" max="64" value="16" />
-    </label>
-    <p id="lengthError" class="error"></p>
-
-    <!-- Character types -->
-    <div class="checkboxes">
-      <label><input id="lowercase" type="checkbox" checked /> Lowercase (a–z)</label>
-      <label><input id="uppercase" type="checkbox" checked /> Uppercase (A–Z)</label>
-      <label><input id="digits" type="checkbox" checked /> Numbers (0–9)</label>
-      <label><input id="symbols" type="checkbox" /> Symbols</label>
+    <div class="tabs">
+      <button class="tab active" data-tab="passwordTab">Password Generator</button>
+      <button class="tab" data-tab="userIdTab">User ID Generator</button>
     </div>
 
-    <!-- Custom symbols -->
-    <label>
-      Symbols to use:
-      <input id="customSymbols" type="text" placeholder="!@#$%^&*-" />
-    </label>
-    <p id="symbolError" class="error"></p>
+    <!-- PASSWORD GENERATOR TAB -->
+    <section id="passwordTab" class="tab-content active">
 
-    <!-- iCloud preset -->
-    <label>
-      <input id="icloudPreset" type="checkbox" />
-      Use iCloud‑style preset (Apple)
-    </label>
-    <p id="presetInfo" class="info"></p>
+      <label>
+        Password length:
+        <input id="length" type="number" min="4" max="64" value="16" />
+      </label>
+      <p id="lengthError" class="error"></p>
 
-    <!-- Output -->
-    <label for="password">Generated password:</label>
-    <div class="password-row">
-      <input id="password" type="text" readonly />
-      <button id="copy">Copy</button>
-    </div>
-    <p id="copyError" class="error"></p>
+      <div class="checkboxes">
+        <label><input id="lowercase" type="checkbox" checked /> Lowercase (a–z)</label>
+        <label><input id="uppercase" type="checkbox" checked /> Uppercase (A–Z)</label>
+        <label><input id="digits" type="checkbox" checked /> Numbers (0–9)</label>
+        <label><input id="symbols" type="checkbox" /> Symbols</label>
+      </div>
 
-    <!-- Strength -->
-    <p id="strengthLabel"></p>
-    <div id="strengthBar"></div>
+      <label>
+        Symbols to use:
+        <input id="customSymbols" type="text" placeholder="!@#$%^&*-" />
+      </label>
+      <p id="symbolError" class="error"></p>
 
-    <!-- Actions -->
-    <button id="generate">Generate Password</button>
-    <button id="clear">Clear</button>
+      <label>
+        <input id="icloudPreset" type="checkbox" />
+        Use iCloud‑style preset (Apple)
+      </label>
+      <p id="presetInfo" class="info"></p>
+
+      <label for="password">Generated password:</label>
+      <div class="password-row">
+        <input id="password" type="text" readonly />
+        <button id="copy">Copy</button>
+      </div>
+      <p id="copyError" class="error"></p>
+
+      <p id="strengthLabel"></p>
+      <div id="strengthBar"></div>
+
+      <button id="generate">Generate Password</button>
+      <button id="clear">Clear</button>
+
+    </section>
+
+    <!-- USER ID GENERATOR TAB -->
+    <section id="userIdTab" class="tab-content">
+
+      <div class="userid-section">
+        <h2>User ID Generator</h2>
+
+        <label>
+          Syllables:
+          <select id="uidSyllables">
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+          </select>
+        </label>
+
+        <label>
+          <input id="uidAddDigits" type="checkbox" checked />
+          Add digits
+        </label>
+
+        <label>
+          Number of digits:
+          <select id="uidDigitsCount">
+            <option value="2" selected>2 digits</option>
+            <option value="3">3 digits</option>
+          </select>
+        </label>
+
+        <label>
+          <input id="uidAddSuffix" type="checkbox" checked />
+          Add suffix
+        </label>
+
+        <label>
+          Suffix:
+          <input id="uidSuffix" type="text" value="dev" />
+        </label>
+
+        <label>
+          Max length:
+          <select id="uidMaxLength">
+            <option value="12">12</option>
+            <option value="15" selected>15</option>
+            <option value="18">18</option>
+            <option value="24">24</option>
+          </select>
+        </label>
+
+        <label>
+          How many:
+          <select id="uidCount">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+          </select>
+        </label>
+
+        <button id="uidGenerateBtn">Generate User IDs</button>
+        <p id="uidError" class="error"></p>
+
+        <div id="uidResults"></div>
+      </div>
+
+    </section>
+
   </main>
 
-  <footer class="footer">
-    <p>Made by Alena • 2026</p>
-  </footer>
-
-  <script src="./script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

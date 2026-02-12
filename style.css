@@ -1,38 +1,99 @@
-/* --- Polished Modern UI (matches project description) --- */
+/* --- PAGE LAYOUT (centers everything) --- */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
 
-/* Layout container */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  background: #f1f5f9;
+  font-family: system-ui, sans-serif;
+}
+
+/* --- Main container card --- */
 .container {
-  max-width: 420px;
-  margin: 40px auto;
+  width: 100%;
+  max-width: 480px;
+
+  margin-top: 40px;
   padding: 28px;
+
   background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+
+  text-align: center; /* centers header + title */
+}
+
+/* Top credit text */
+.top-credit {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
 /* Title */
 h1 {
+  display: block;
+  width: 100%;
+  text-align: center;
   font-size: 26px;
   font-weight: 600;
   margin-bottom: 22px;
   color: #0f172a;
-  text-align: center;
 }
 
-/* Labels */
-label {
+/* --- Tabs --- */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  background: #e2e8f0;
+  color: #334155;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #0ea5e9;
+  color: white;
+}
+
+.tab-content {
+  display: none;
+  text-align: left; /* aligns form fields */
+}
+
+.tab-content.active {
   display: block;
-  margin-top: 16px;
-  font-weight: 500;
-  color: #1e293b;
 }
 
-/* Inputs */
-input[type="number"],
-input[type="text"] {
+/* --- FORM ALIGNMENT FIX (IMPORTANT!) --- */
+.tab-content label {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 0;
+}
+
+.tab-content input[type="number"],
+.tab-content input[type="text"],
+.tab-content select {
+  width: 100%;
+  box-sizing: border-box; /* ensures equal left/right spacing */
   margin-top: 6px;
   padding: 10px 12px;
-  width: 100%;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #f8fafc;
@@ -40,8 +101,8 @@ input[type="text"] {
   transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
-input[type="number"]:focus,
-input[type="text"]:focus {
+input:focus,
+select:focus {
   border-color: #0ea5e9;
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
   outline: none;
@@ -122,19 +183,9 @@ button:disabled {
   margin-top: 4px;
 }
 
-.footer {
-  margin-top: 40px;
-  padding: 16px 0;
-  text-align: center;
-  color: #64748b;
-  font-size: 14px;
-  border-top: 1px solid #e2e8f0;
-}
-
 /* --- User ID Generator Styles --- */
-
 .userid-section {
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding: 1.5rem;
   background: #1e293b;
   border-radius: 8px;
@@ -148,6 +199,7 @@ button:disabled {
 .userid-section label {
   display: block;
   margin-bottom: 0.75rem;
+  color: #e2e8f0;
 }
 
 #uidResults {
