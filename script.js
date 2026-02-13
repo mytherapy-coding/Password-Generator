@@ -88,6 +88,59 @@ function pick(pool) {
 }
 
 // ------------------------------
+// RESTORE UI STATE
+// ------------------------------
+function restorePasswordUI() {
+  const config = loadPasswordSettings();
+  if (!config) return;
+
+  // Validate before applying
+  if (typeof config.length === "number" && config.length >= 4 && config.length <= 64) {
+    lengthInput.value = config.length;
+  }
+
+  lowercaseCheckbox.checked = !!config.useLower;
+  uppercaseCheckbox.checked = !!config.useUpper;
+  digitsCheckbox.checked = !!config.useDigits;
+  symbolsCheckbox.checked = !!config.useSymbols;
+
+  if (typeof config.customSymbols === "string") {
+    customSymbolsInput.value = config.customSymbols;
+  }
+
+  icloudPresetCheckbox.checked = !!config.icloudPreset;
+
+  updateIcloudUIState();
+  updateGenerateButtonState();
+
+  showRestoredNotice("Password settings restored from previous session");
+}
+
+function restoreUserIdUI() {
+  const config = loadUserIdSettings();
+  if (!config) return;
+
+  if (config.syllables === 2 || config.syllables === 3) {
+    uidSyllables.value = config.syllables;
+  }
+
+  uidAddDigits.checked = !!config.addDigits;
+  uidDigitsCount.value = config.digitsCount || 2;
+
+  uidAddSuffix.checked = !!config.addSuffix;
+  uidSuffix.value = config.suffix || "";
+
+  uidMaxLength.value = config.maxLength || 15;
+  uidCount.value = config.count || 10;
+
+  uidDigitsCount.disabled = !uidAddDigits.checked;
+  uidSuffix.disabled = !uidAddSuffix.checked;
+
+  showRestoredNotice("User ID settings restored from previous session");
+}
+
+
+// ------------------------------
 // SYMBOL VALIDATION
 // ------------------------------
 function validateSymbolsInput(text) {
