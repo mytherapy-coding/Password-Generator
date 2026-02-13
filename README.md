@@ -61,7 +61,16 @@ Strength levels:
 6. Click **Copy** to copy it to your clipboard.
 7. Click **Clear** to reset the interface.
 
+### User ID Generator
+1. Choose syllables (2 or 3).
+2. Enable/disable digits and suffix.
+3. Set max length.
+4. Choose how many IDs to generate.
+5. Click **Generate User IDs**.
+6. Copy any ID using its button.
+
 ---
+
 
 ## 🖼️ Screenshot
 
