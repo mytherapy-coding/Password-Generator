@@ -20,6 +20,61 @@ const DIGITS = "0123456789";
 const DEFAULT_SYMBOLS = "!@#$%^&*()-_=+[]{};:,.<>/?";
 
 // ------------------------------
+// PERSISTENCE HELPERS
+// ------------------------------
+function savePasswordSettings() {
+  const config = {
+    length: Number(lengthInput.value),
+    useLower: lowercaseCheckbox.checked,
+    useUpper: uppercaseCheckbox.checked,
+    useDigits: digitsCheckbox.checked,
+    useSymbols: symbolsCheckbox.checked,
+    customSymbols: customSymbolsInput.value,
+    icloudPreset: icloudPresetCheckbox.checked
+  };
+
+  localStorage.setItem("passwordSettings", JSON.stringify(config));
+}
+
+function loadPasswordSettings() {
+  const raw = localStorage.getItem("passwordSettings");
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    console.warn("Password settings corrupted — using defaults.");
+    return null;
+  }
+}
+
+function saveUserIdSettings() {
+  const config = {
+    syllables: Number(uidSyllables.value),
+    addDigits: uidAddDigits.checked,
+    digitsCount: Number(uidDigitsCount.value),
+    addSuffix: uidAddSuffix.checked,
+    suffix: uidSuffix.value,
+    maxLength: Number(uidMaxLength.value),
+    count: Number(uidCount.value)
+  };
+
+  localStorage.setItem("userIdSettings", JSON.stringify(config));
+}
+
+function loadUserIdSettings() {
+  const raw = localStorage.getItem("userIdSettings");
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    console.warn("User ID settings corrupted — using defaults.");
+    return null;
+  }
+}
+ 
+// ------------------------------
 // RANDOM HELPERS
 // ------------------------------
 function randomInt(max) {
