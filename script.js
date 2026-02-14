@@ -139,6 +139,15 @@ function restoreUserIdUI() {
   showRestoredNotice("User ID settings restored from previous session");
 }
 
+function showRestoredNotice(text) {
+  const el = document.getElementById("restoreNotice");
+  el.textContent = text;
+
+  setTimeout(() => {
+    el.textContent = "";
+  }, 2500);
+}
+
 
 // ------------------------------
 // SYMBOL VALIDATION
