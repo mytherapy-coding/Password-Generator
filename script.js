@@ -595,6 +595,14 @@ icloudPresetCheckbox.addEventListener("change", () => {
   updateIcloudUIState();
   updateGenerateButtonState();
 });
+lengthInput.addEventListener("change", savePasswordSettings);
+lowercaseCheckbox.addEventListener("change", savePasswordSettings);
+uppercaseCheckbox.addEventListener("change", savePasswordSettings);
+digitsCheckbox.addEventListener("change", savePasswordSettings);
+symbolsCheckbox.addEventListener("change", savePasswordSettings);
+customSymbolsInput.addEventListener("input", savePasswordSettings);
+icloudPresetCheckbox.addEventListener("change", savePasswordSettings);
+
 
 // USER ID LISTENERS
 uidAddDigits.addEventListener("change", () => {
@@ -606,6 +614,14 @@ uidAddSuffix.addEventListener("change", () => {
 });
 
 uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
+
+uidSyllables.addEventListener("change", saveUserIdSettings);
+uidAddDigits.addEventListener("change", saveUserIdSettings);
+uidDigitsCount.addEventListener("change", saveUserIdSettings);
+uidAddSuffix.addEventListener("change", saveUserIdSettings);
+uidSuffix.addEventListener("input", saveUserIdSettings);
+uidMaxLength.addEventListener("change", saveUserIdSettings);
+uidCount.addEventListener("change", saveUserIdSettings);
 
 // ------------------------------
 // REAL-TIME BUTTON STATE
