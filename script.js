@@ -652,3 +652,7 @@ function updateGenerateButtonState() {
 
 updateGenerateButtonState();
 updateIcloudUIState();
+restorePasswordUI();
+restoreUserIdUI();
+updateGenerateButtonState();
+updateIcloudUIState();
