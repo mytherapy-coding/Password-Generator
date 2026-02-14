@@ -20,61 +20,6 @@ const DIGITS = "0123456789";
 const DEFAULT_SYMBOLS = "!@#$%^&*()-_=+[]{};:,.<>/?";
 
 // ------------------------------
-// PERSISTENCE HELPERS
-// ------------------------------
-function savePasswordSettings() {
-  const config = {
-    length: Number(lengthInput.value),
-    useLower: lowercaseCheckbox.checked,
-    useUpper: uppercaseCheckbox.checked,
-    useDigits: digitsCheckbox.checked,
-    useSymbols: symbolsCheckbox.checked,
-    customSymbols: customSymbolsInput.value,
-    icloudPreset: icloudPresetCheckbox.checked
-  };
-
-  localStorage.setItem("passwordSettings", JSON.stringify(config));
-}
-
-function loadPasswordSettings() {
-  const raw = localStorage.getItem("passwordSettings");
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    console.warn("Password settings corrupted — using defaults.");
-    return null;
-  }
-}
-
-function saveUserIdSettings() {
-  const config = {
-    syllables: Number(uidSyllables.value),
-    addDigits: uidAddDigits.checked,
-    digitsCount: Number(uidDigitsCount.value),
-    addSuffix: uidAddSuffix.checked,
-    suffix: uidSuffix.value,
-    maxLength: Number(uidMaxLength.value),
-    count: Number(uidCount.value)
-  };
-
-  localStorage.setItem("userIdSettings", JSON.stringify(config));
-}
-
-function loadUserIdSettings() {
-  const raw = localStorage.getItem("userIdSettings");
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    console.warn("User ID settings corrupted — using defaults.");
-    return null;
-  }
-}
- 
-// ------------------------------
 // RANDOM HELPERS
 // ------------------------------
 function randomInt(max) {
@@ -86,68 +31,6 @@ function randomInt(max) {
 function pick(pool) {
   return pool[randomInt(pool.length)];
 }
-
-// ------------------------------
-// RESTORE UI STATE
-// ------------------------------
-function restorePasswordUI() {
-  const config = loadPasswordSettings();
-  if (!config) return;
-
-  // Validate before applying
-  if (typeof config.length === "number" && config.length >= 4 && config.length <= 64) {
-    lengthInput.value = config.length;
-  }
-
-  lowercaseCheckbox.checked = !!config.useLower;
-  uppercaseCheckbox.checked = !!config.useUpper;
-  digitsCheckbox.checked = !!config.useDigits;
-  symbolsCheckbox.checked = !!config.useSymbols;
-
-  if (typeof config.customSymbols === "string") {
-    customSymbolsInput.value = config.customSymbols;
-  }
-
-  icloudPresetCheckbox.checked = !!config.icloudPreset;
-
-  updateIcloudUIState();
-  updateGenerateButtonState();
-
-  showRestoredNotice("Password settings restored from previous session");
-}
-
-function restoreUserIdUI() {
-  const config = loadUserIdSettings();
-  if (!config) return;
-
-  if (config.syllables === 2 || config.syllables === 3) {
-    uidSyllables.value = config.syllables;
-  }
-
-  uidAddDigits.checked = !!config.addDigits;
-  uidDigitsCount.value = config.digitsCount || 2;
-
-  uidAddSuffix.checked = !!config.addSuffix;
-  uidSuffix.value = config.suffix || "";
-
-  uidMaxLength.value = config.maxLength || 15;
-  uidCount.value = config.count || 10;
-
-  uidDigitsCount.disabled = !uidAddDigits.checked;
-  uidSuffix.disabled = !uidAddSuffix.checked;
-
-  showRestoredNotice("User ID settings restored from previous session");
-}
-
-function showRestoredNotice(text) {
-  const el = document.getElementById("restoreNotice");
-  el.textContent = text;
-
-  setTimeout(() => {
-    el.textContent = "";
-  }, 2500);
-}
-
 
 // ------------------------------
 // SYMBOL VALIDATION
@@ -393,6 +276,121 @@ const uidError = document.getElementById("uidError");
 const uidResults = document.getElementById("uidResults");
 
 // ------------------------------
+// PERSISTENCE HELPERS
+// ------------------------------
+function savePasswordSettings() {
+  const config = {
+    length: Number(lengthInput.value),
+    useLower: lowercaseCheckbox.checked,
+    useUpper: uppercaseCheckbox.checked,
+    useDigits: digitsCheckbox.checked,
+    useSymbols: symbolsCheckbox.checked,
+    customSymbols: customSymbolsInput.value,
+    icloudPreset: icloudPresetCheckbox.checked
+  };
+
+  localStorage.setItem("passwordSettings", JSON.stringify(config));
+}
+
+function loadPasswordSettings() {
+  const raw = localStorage.getItem("passwordSettings");
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    console.warn("Password settings corrupted — using defaults.");
+    return null;
+  }
+}
+
+function saveUserIdSettings() {
+  const config = {
+    syllables: Number(uidSyllables.value),
+    addDigits: uidAddDigits.checked,
+    digitsCount: Number(uidDigitsCount.value),
+    addSuffix: uidAddSuffix.checked,
+    suffix: uidSuffix.value,
+    maxLength: Number(uidMaxLength.value),
+    count: Number(uidCount.value)
+  };
+
+  localStorage.setItem("userIdSettings", JSON.stringify(config));
+}
+
+function loadUserIdSettings() {
+  const raw = localStorage.getItem("userIdSettings");
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    console.warn("User ID settings corrupted — using defaults.");
+    return null;
+  }
+}
+
+// ------------------------------
+// RESTORE UI STATE
+// ------------------------------
+function showRestoredNotice(text) {
+  const el = document.getElementById("restoreNotice");
+  el.textContent = text;
+
+  setTimeout(() => {
+    el.textContent = "";
+  }, 2500);
+}
+
+function restorePasswordUI() {
+  const config = loadPasswordSettings();
+  if (!config) return;
+
+  if (typeof config.length === "number" && config.length >= 4 && config.length <= 64) {
+    lengthInput.value = config.length;
+  }
+
+  lowercaseCheckbox.checked = !!config.useLower;
+  uppercaseCheckbox.checked = !!config.useUpper;
+  digitsCheckbox.checked = !!config.useDigits;
+  symbolsCheckbox.checked = !!config.useSymbols;
+
+  if (typeof config.customSymbols === "string") {
+    customSymbolsInput.value = config.customSymbols;
+  }
+
+  icloudPresetCheckbox.checked = !!config.icloudPreset;
+
+  updateIcloudUIState();
+  updateGenerateButtonState();
+
+  showRestoredNotice("Password settings restored from previous session");
+}
+
+function restoreUserIdUI() {
+  const config = loadUserIdSettings();
+  if (!config) return;
+
+  if (config.syllables === 2 || config.syllables === 3) {
+    uidSyllables.value = config.syllables;
+  }
+
+  uidAddDigits.checked = !!config.addDigits;
+  uidDigitsCount.value = config.digitsCount || 2;
+
+  uidAddSuffix.checked = !!config.addSuffix;
+  uidSuffix.value = config.suffix || "";
+
+  uidMaxLength.value = config.maxLength || 15;
+  uidCount.value = config.count || 10;
+
+  uidDigitsCount.disabled = !uidAddDigits.checked;
+  uidSuffix.disabled = !uidAddSuffix.checked;
+
+  showRestoredNotice("User ID settings restored from previous session");
+}
+
+// ------------------------------
 // UI STATE
 // ------------------------------
 function updateIcloudUIState() {
@@ -474,34 +472,6 @@ function handleGenerate() {
   strengthLabelEl.textContent = `Strength: ${strength.label}`;
   strengthBarEl.style.background = strength.color;
 }
-document.getElementById("resetPasswordSettings").addEventListener("click", () => {
-  localStorage.removeItem("passwordSettings");
-  lengthInput.value = 16;
-  lowercaseCheckbox.checked = true;
-  uppercaseCheckbox.checked = true;
-  digitsCheckbox.checked = true;
-  symbolsCheckbox.checked = false;
-  customSymbolsInput.value = "";
-  icloudPresetCheckbox.checked = false;
-
-  updateIcloudUIState();
-  updateGenerateButtonState();
-});
-
-document.getElementById("resetUserIdSettings").addEventListener("click", () => {
-  localStorage.removeItem("userIdSettings");
-
-  uidSyllables.value = 2;
-  uidAddDigits.checked = true;
-  uidDigitsCount.value = 2;
-  uidAddSuffix.checked = true;
-  uidSuffix.value = "dev";
-  uidMaxLength.value = 15;
-  uidCount.value = 10;
-
-  uidDigitsCount.disabled = false;
-  uidSuffix.disabled = false;
-});
 
 // ------------------------------
 // USER ID GENERATE HANDLER
@@ -585,6 +555,39 @@ async function handleCopy() {
 }
 
 // ------------------------------
+// RESET BUTTONS
+// ------------------------------
+document.getElementById("resetPasswordSettings").addEventListener("click", () => {
+  localStorage.removeItem("passwordSettings");
+
+  lengthInput.value = 16;
+  lowercaseCheckbox.checked = true;
+  uppercaseCheckbox.checked = true;
+  digitsCheckbox.checked = true;
+  symbolsCheckbox.checked = false;
+  customSymbolsInput.value = "";
+  icloudPresetCheckbox.checked = false;
+
+  updateIcloudUIState();
+  updateGenerateButtonState();
+});
+
+document.getElementById("resetUserIdSettings").addEventListener("click", () => {
+  localStorage.removeItem("userIdSettings");
+
+  uidSyllables.value = 2;
+  uidAddDigits.checked = true;
+  uidDigitsCount.value = 2;
+  uidAddSuffix.checked = true;
+  uidSuffix.value = "dev";
+  uidMaxLength.value = 15;
+  uidCount.value = 10;
+
+  uidDigitsCount.disabled = false;
+  uidSuffix.disabled = false;
+});
+
+// ------------------------------
 // EVENT LISTENERS
 // ------------------------------
 generateBtn.addEventListener("click", handleGenerate);
@@ -594,65 +597,11 @@ copyBtn.addEventListener("click", handleCopy);
 icloudPresetCheckbox.addEventListener("change", () => {
   updateIcloudUIState();
   updateGenerateButtonState();
+  savePasswordSettings();
 });
+
+// PASSWORD SETTINGS SAVE EVENTS
 lengthInput.addEventListener("change", savePasswordSettings);
 lowercaseCheckbox.addEventListener("change", savePasswordSettings);
 uppercaseCheckbox.addEventListener("change", savePasswordSettings);
-digitsCheckbox.addEventListener("change", savePasswordSettings);
-symbolsCheckbox.addEventListener("change", savePasswordSettings);
-customSymbolsInput.addEventListener("input", savePasswordSettings);
-icloudPresetCheckbox.addEventListener("change", savePasswordSettings);
-
-
-// USER ID LISTENERS
-uidAddDigits.addEventListener("change", () => {
-  uidDigitsCount.disabled = !uidAddDigits.checked;
-});
-
-uidAddSuffix.addEventListener("change", () => {
-  uidSuffix.disabled = !uidAddSuffix.checked;
-});
-
-uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
-
-uidSyllables.addEventListener("change", saveUserIdSettings);
-uidAddDigits.addEventListener("change", saveUserIdSettings);
-uidDigitsCount.addEventListener("change", saveUserIdSettings);
-uidAddSuffix.addEventListener("change", saveUserIdSettings);
-uidSuffix.addEventListener("input", saveUserIdSettings);
-uidMaxLength.addEventListener("change", saveUserIdSettings);
-uidCount.addEventListener("change", saveUserIdSettings);
-
-// ------------------------------
-// REAL-TIME BUTTON STATE
-// ------------------------------
-function updateGenerateButtonState() {
-  const length = Number(lengthInput.value);
-  const lengthValid = !Number.isNaN(length) && length >= 4 && length <= 64;
-
-  const anyCharset =
-    lowercaseCheckbox.checked ||
-    uppercaseCheckbox.checked ||
-    digitsCheckbox.checked ||
-    symbolsCheckbox.checked;
-
-  let symbolsValid = true;
-  if (symbolsCheckbox.checked) {
-    const result = validateSymbolsInput(customSymbolsInput.value);
-    symbolsValid = result.ok;
-  }
-
-  if (icloudPresetCheckbox.checked) {
-    generateBtn.disabled = false;
-    return;
-  }
-
-  generateBtn.disabled = !(lengthValid && anyCharset && symbolsValid);
-}
-
-updateGenerateButtonState();
-updateIcloudUIState();
-restorePasswordUI();
-restoreUserIdUI();
-updateGenerateButtonState();
-updateIcloudUIState();
+digitsCheckbox.addEventListener("change", save

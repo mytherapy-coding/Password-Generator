@@ -2,73 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Password & User ID Generator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+  <div class="container">
 
-  <main class="container">
+    <!-- Top credit -->
+    <span class="top-credit">Made by Alena • 2026</span>
+
+    <!-- Title -->
+    <h1>Password & User ID Generator</h1>
+
+    <!-- Settings restored notice -->
     <p id="restoreNotice" style="color:#0ea5e9; font-size:14px; margin-bottom:10px;"></p>
 
-    <p class="top-credit">Made by Alena • 2026</p>
-    <h1>Password Generator</h1>
-
+    <!-- Tabs -->
     <div class="tabs">
-      <button class="tab active" data-tab="passwordTab">Password Generator</button>
-      <button class="tab" data-tab="userIdTab">User ID Generator</button>
+      <button class="tab active" data-tab="passwordTab">Password</button>
+      <button class="tab" data-tab="userIdTab">User ID</button>
     </div>
 
     <!-- PASSWORD GENERATOR TAB -->
-    <section id="passwordTab" class="tab-content active">
-      <button id="resetPasswordSettings">Reset Settings</button>
-
+    <div id="passwordTab" class="tab-content active">
 
       <label>
         Password length:
-        <input id="length" type="number" min="4" max="64" value="16" />
+        <input type="number" id="length" min="4" max="64" value="16" />
       </label>
-      <p id="lengthError" class="error"></p>
+      <div id="lengthError" class="error"></div>
 
       <div class="checkboxes">
-        <label><input id="lowercase" type="checkbox" checked /> Lowercase (a–z)</label>
-        <label><input id="uppercase" type="checkbox" checked /> Uppercase (A–Z)</label>
-        <label><input id="digits" type="checkbox" checked /> Numbers (0–9)</label>
-        <label><input id="symbols" type="checkbox" /> Symbols</label>
+        <label><input type="checkbox" id="lowercase" checked /> Lowercase</label>
+        <label><input type="checkbox" id="uppercase" checked /> Uppercase</label>
+        <label><input type="checkbox" id="digits" checked /> Numbers</label>
+        <label><input type="checkbox" id="symbols" /> Symbols</label>
       </div>
 
       <label>
-        Symbols to use:
-        <input id="customSymbols" type="text" placeholder="!@#$%^&*-" />
+        Custom symbols:
+        <input type="text" id="customSymbols" placeholder="!@#$%^&*" />
       </label>
-      <p id="symbolError" class="error"></p>
+      <div id="symbolError" class="error"></div>
 
       <label>
-        <input id="icloudPreset" type="checkbox" />
-        Use iCloud‑style preset (Apple)
+        <input type="checkbox" id="icloudPreset" />
+        iCloud-style preset
       </label>
-      <p id="presetInfo" class="info"></p>
+      <div id="presetInfo" class="info"></div>
 
-      <label for="password">Generated password:</label>
+      <!-- Password output -->
       <div class="password-row">
-        <input id="password" type="text" readonly />
+        <input type="text" id="password" readonly />
         <button id="copy">Copy</button>
       </div>
-      <p id="copyError" class="error"></p>
+      <div id="copyError" class="error"></div>
 
-      <p id="strengthLabel"></p>
+      <!-- Strength -->
+      <div id="strengthLabel"></div>
       <div id="strengthBar"></div>
 
-      <button id="generate">Generate Password</button>
+      <!-- Buttons -->
+      <button id="generate">Generate</button>
       <button id="clear">Clear</button>
 
-    </section>
+      <!-- Reset settings -->
+      <button id="resetPasswordSettings" style="margin-top:12px; background:#64748b;">
+        Reset Settings
+      </button>
+    </div>
 
     <!-- USER ID GENERATOR TAB -->
-    <section id="userIdTab" class="tab-content">
-      <button id="resetUserIdSettings">Reset Settings</button>
-
+    <div id="userIdTab" class="tab-content">
 
       <div class="userid-section">
         <h2>User ID Generator</h2>
@@ -76,46 +83,41 @@
         <label>
           Syllables:
           <select id="uidSyllables">
-            <option value="2" selected>2</option>
+            <option value="2">2</option>
             <option value="3">3</option>
           </select>
         </label>
 
         <label>
-          <input id="uidAddDigits" type="checkbox" checked />
+          <input type="checkbox" id="uidAddDigits" checked />
           Add digits
         </label>
 
         <label>
-          Number of digits:
+          Digit count:
           <select id="uidDigitsCount">
-            <option value="2" selected>2 digits</option>
-            <option value="3">3 digits</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
           </select>
         </label>
 
         <label>
-          <input id="uidAddSuffix" type="checkbox" checked />
+          <input type="checkbox" id="uidAddSuffix" checked />
           Add suffix
         </label>
 
         <label>
           Suffix:
-          <input id="uidSuffix" type="text" value="dev" />
+          <input type="text" id="uidSuffix" value="dev" />
         </label>
 
         <label>
           Max length:
-          <select id="uidMaxLength">
-            <option value="12">12</option>
-            <option value="15" selected>15</option>
-            <option value="18">18</option>
-            <option value="24">24</option>
-          </select>
+          <input type="number" id="uidMaxLength" min="6" max="24" value="15" />
         </label>
 
         <label>
-          How many:
+          Generate count:
           <select id="uidCount">
             <option value="5">5</option>
             <option value="10" selected>10</option>
@@ -123,17 +125,21 @@
           </select>
         </label>
 
+        <div id="uidError" class="error"></div>
+
         <button id="uidGenerateBtn">Generate User IDs</button>
-        <p id="uidError" class="error"></p>
+
+        <!-- Reset settings -->
+        <button id="resetUserIdSettings" style="margin-top:12px; background:#64748b;">
+          Reset Settings
+        </button>
 
         <div id="uidResults"></div>
       </div>
+    </div>
 
-    </section>
-
-  </main>
+  </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
