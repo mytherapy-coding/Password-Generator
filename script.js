@@ -474,6 +474,34 @@ function handleGenerate() {
   strengthLabelEl.textContent = `Strength: ${strength.label}`;
   strengthBarEl.style.background = strength.color;
 }
+document.getElementById("resetPasswordSettings").addEventListener("click", () => {
+  localStorage.removeItem("passwordSettings");
+  lengthInput.value = 16;
+  lowercaseCheckbox.checked = true;
+  uppercaseCheckbox.checked = true;
+  digitsCheckbox.checked = true;
+  symbolsCheckbox.checked = false;
+  customSymbolsInput.value = "";
+  icloudPresetCheckbox.checked = false;
+
+  updateIcloudUIState();
+  updateGenerateButtonState();
+});
+
+document.getElementById("resetUserIdSettings").addEventListener("click", () => {
+  localStorage.removeItem("userIdSettings");
+
+  uidSyllables.value = 2;
+  uidAddDigits.checked = true;
+  uidDigitsCount.value = 2;
+  uidAddSuffix.checked = true;
+  uidSuffix.value = "dev";
+  uidMaxLength.value = 15;
+  uidCount.value = 10;
+
+  uidDigitsCount.disabled = false;
+  uidSuffix.disabled = false;
+});
 
 // ------------------------------
 // USER ID GENERATE HANDLER
