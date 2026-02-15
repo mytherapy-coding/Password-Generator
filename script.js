@@ -20,6 +20,13 @@ const DIGITS = "0123456789";
 const DEFAULT_SYMBOLS = "!@#$%^&*()-_=+[]{};:,.<>/?";
 
 // ------------------------------
+// WORD LISTS (STEP 2 ADDITION)
+// ------------------------------
+let WORD_ADJECTIVES = [];
+let WORD_NOUNS = [];
+let wordsLoaded = false;
+
+// ------------------------------
 // RANDOM HELPERS
 // ------------------------------
 function randomInt(max) {
@@ -136,7 +143,7 @@ function generateIcloudPassword() {
 }
 
 // ------------------------------
-// USER ID GENERATOR
+// USER ID GENERATOR (CVC MODE)
 // ------------------------------
 function generateCvcStem(syllablesCount) {
   let stem = "";
@@ -276,7 +283,20 @@ const uidError = document.getElementById("uidError");
 const uidResults = document.getElementById("uidResults");
 
 // ------------------------------
-// PERSISTENCE HELPERS
+// STEP 2: NEW DOM REFERENCES
+// ------------------------------
+const uidMode = document.getElementById("uidMode");
+const uidCvcControls = document.getElementById("uidCvcControls");
+const uidWordsControls = document.getElementById("uidWordsControls");
+
+const uidWordsCount = document.getElementById("uidWordsCount");
+const uidWordsSeparator = document.getElementById("uidWordsSeparator");
+const uidWordsAddDigits = document.getElementById("uidWordsAddDigits");
+const uidWordsDigitsCount = document.getElementById("uidWordsDigitsCount");
+const uidWordsMaxLength = document.getElementById("uidWordsMaxLength");
+
+// ------------------------------
+// PERSISTENCE HELPERS (unchanged from Part 5)
 // ------------------------------
 function savePasswordSettings() {
   const config = {
@@ -306,12 +326,24 @@ function loadPasswordSettings() {
 
 function saveUserIdSettings() {
   const config = {
+    mode: uidMode.value,
+
+    // CVC mode
     syllables: Number(uidSyllables.value),
     addDigits: uidAddDigits.checked,
     digitsCount: Number(uidDigitsCount.value),
     addSuffix: uidAddSuffix.checked,
     suffix: uidSuffix.value,
     maxLength: Number(uidMaxLength.value),
+
+    // Words mode (will be used in Step 3)
+    wordsCount: Number(uidWordsCount.value),
+    wordsSeparator: uidWordsSeparator.value,
+    wordsAddDigits: uidWordsAddDigits.checked,
+    wordsDigitsCount: Number(uidWordsDigitsCount.value),
+    wordsMaxLength: Number(uidWordsMaxLength.value),
+
+    // Shared
     count: Number(uidCount.value)
   };
 
@@ -369,7 +401,14 @@ function restorePasswordUI() {
 
 function restoreUserIdUI() {
   const config = loadUserIdSettings();
-  if (!config) return;
+  if (!config) {
+    updateUserIdModeUI();
+    return;
+  }
+
+  if (config.mode === "cvc" || config.mode === "words") {
+    uidMode.value = config.mode;
+  }
 
   if (config.syllables === 2 || config.syllables === 3) {
     uidSyllables.value = config.syllables;
@@ -382,10 +421,26 @@ function restoreUserIdUI() {
   uidSuffix.value = config.suffix || "";
 
   uidMaxLength.value = config.maxLength || 15;
+
+  if (config.wordsCount === 2 || config.wordsCount === 3) {
+    uidWordsCount.value = config.wordsCount;
+  }
+
+  if (["_", ".", "-", "none"].includes(config.wordsSeparator)) {
+    uidWordsSeparator.value = config.wordsSeparator;
+  }
+
+  uidWordsAddDigits.checked = !!config.wordsAddDigits;
+  uidWordsDigitsCount.value = config.wordsDigitsCount || 2;
+
+  uidWordsMaxLength.value = config.wordsMaxLength || 20;
+
   uidCount.value = config.count || 10;
 
   uidDigitsCount.disabled = !uidAddDigits.checked;
   uidSuffix.disabled = !uidAddSuffix.checked;
+
+  updateUserIdModeUI();
 
   showRestoredNotice("User ID settings restored from previous session");
 }
@@ -404,6 +459,53 @@ function updateIcloudUIState() {
   customSymbolsInput.disabled = on;
 
   presetInfo.textContent = on ? "iCloud preset is active: settings are fixed." : "";
+}
+
+// ------------------------------
+// STEP 2: USER ID MODE UI
+// ------------------------------
+function updateUserIdModeUI() {
+  const mode = uidMode.value;
+
+  if (mode === "cvc") {
+    uidCvcControls.style.display = "";
+    uidWordsControls.style.display = "none";
+  } else {
+    uidCvcControls.style.display = "none";
+    uidWordsControls.style.display = "";
+  }
+}
+
+// ------------------------------
+// LOAD WORD LISTS (STEP 2)
+// ------------------------------
+async function loadWordLists() {
+  try {
+    const [adjsRes, nounsRes] = await Promise.all([
+      fetch("data/adjs.json"),
+      fetch("data/nouns.json")
+    ]);
+
+    if (!adjsRes.ok || !nounsRes.ok) {
+      throw new Error("Network error");
+    }
+
+    const adjsJson = await adjsRes.json();
+    const nounsJson = await nounsRes.json();
+
+    WORD_ADJECTIVES = (adjsJson.adjs || adjsJson)
+      .map(w => w.toLowerCase().replace(/[^a-z]/g, ""))
+      .filter(Boolean);
+
+    WORD_NOUNS = (nounsJson.nouns || nounsJson)
+      .map(w => w.toLowerCase().replace(/[^a-z]/g, ""))
+      .filter(Boolean);
+
+    wordsLoaded = true;
+  } catch (e) {
+    console.error("Failed to load word lists", e);
+    uidError.textContent = "Could not load word lists. Please refresh the page.";
+  }
 }
 
 // ------------------------------
@@ -474,134 +576,7 @@ function handleGenerate() {
 }
 
 // ------------------------------
-// USER ID GENERATE HANDLER
+// USER ID GENERATE HANDLER (CVC ONLY FOR NOW)
 // ------------------------------
 function handleGenerateUserIds() {
-  uidError.textContent = "";
-  uidResults.innerHTML = "";
-
-  const options = {
-    syllables: Number(uidSyllables.value),
-    addDigits: uidAddDigits.checked,
-    digitsCount: Number(uidDigitsCount.value),
-    addSuffix: uidAddSuffix.checked,
-    suffix: normalizeSuffix(uidSuffix.value),
-    maxLength: Number(uidMaxLength.value)
-  };
-
-  const validation = validateUserIdOptions(options);
-  if (!validation.ok) {
-    uidError.textContent = validation.msg;
-    return;
-  }
-
-  const count = Number(uidCount.value);
-  const result = generateUserIdList(options, count);
-
-  if (!result.ok) {
-    uidError.textContent = result.msg;
-    return;
-  }
-
-  result.list.forEach(id => {
-    const row = document.createElement("div");
-    row.className = "uid-row";
-
-    const span = document.createElement("span");
-    span.textContent = id;
-
-    const btn = document.createElement("button");
-    btn.textContent = "Copy";
-    btn.addEventListener("click", () => copyToClipboard(id));
-
-    row.appendChild(span);
-    row.appendChild(btn);
-    uidResults.appendChild(row);
-  });
-}
-
-// ------------------------------
-// CLEAR
-// ------------------------------
-function handleClear() {
-  passwordInput.value = "";
-  strengthLabelEl.textContent = "";
-  strengthBarEl.style.background = "#475569";
-  lengthError.textContent = "";
-  symbolError.textContent = "";
-  copyError.textContent = "";
-  presetInfo.textContent = "";
-}
-
-// ------------------------------
-// COPY
-// ------------------------------
-async function handleCopy() {
-  const text = passwordInput.value.trim();
-  const result = await copyToClipboard(text);
-
-  if (!result.ok) {
-    copyError.textContent = result.msg;
-    return;
-  }
-
-  copyError.style.color = "#38bdf8";
-  copyError.textContent = "Copied!";
-
-  setTimeout(() => {
-    copyError.textContent = "";
-    copyError.style.color = "#f87171";
-  }, 1500);
-}
-
-// ------------------------------
-// RESET BUTTONS
-// ------------------------------
-document.getElementById("resetPasswordSettings").addEventListener("click", () => {
-  localStorage.removeItem("passwordSettings");
-
-  lengthInput.value = 16;
-  lowercaseCheckbox.checked = true;
-  uppercaseCheckbox.checked = true;
-  digitsCheckbox.checked = true;
-  symbolsCheckbox.checked = false;
-  customSymbolsInput.value = "";
-  icloudPresetCheckbox.checked = false;
-
-  updateIcloudUIState();
-  updateGenerateButtonState();
-});
-
-document.getElementById("resetUserIdSettings").addEventListener("click", () => {
-  localStorage.removeItem("userIdSettings");
-
-  uidSyllables.value = 2;
-  uidAddDigits.checked = true;
-  uidDigitsCount.value = 2;
-  uidAddSuffix.checked = true;
-  uidSuffix.value = "dev";
-  uidMaxLength.value = 15;
-  uidCount.value = 10;
-
-  uidDigitsCount.disabled = false;
-  uidSuffix.disabled = false;
-});
-
-// ------------------------------
-// EVENT LISTENERS
-// ------------------------------
-generateBtn.addEventListener("click", handleGenerate);
-clearBtn.addEventListener("click", handleClear);
-copyBtn.addEventListener("click", handleCopy);
-
-icloudPresetCheckbox.addEventListener("change", () => {
-  updateIcloudUIState();
-  updateGenerateButtonState();
-  savePasswordSettings();
-});
-
-// PASSWORD SETTINGS SAVE EVENTS
-lengthInput.addEventListener("change", savePasswordSettings);
-lowercaseCheckbox.addEventListener("change", savePasswordSettings);
-uppercaseCheckbox.addEventListener("change", savePasswordSettings);
-digitsCheckbox.addEventListener("change", save
+  uidError.text
