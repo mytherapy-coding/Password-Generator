@@ -20,7 +20,7 @@ const DIGITS = "0123456789";
 const DEFAULT_SYMBOLS = "!@#$%^&*()-_=+[]{};:,.<>/?";
 
 // ------------------------------
-// WORD LISTS (STEP 2)
+// WORD LISTS
 // ------------------------------
 let WORD_ADJECTIVES = [];
 let WORD_NOUNS = [];
@@ -218,7 +218,7 @@ function generateUserIdList(options, count) {
 }
 
 // ------------------------------
-// WORD NORMALIZATION (STEP 3)
+// WORD NORMALIZATION
 // ------------------------------
 function normalizeWord(raw) {
   return raw
@@ -228,7 +228,7 @@ function normalizeWord(raw) {
 }
 
 // ------------------------------
-// WORDS MODE GENERATOR (STEP 3)
+// WORDS MODE GENERATOR
 // ------------------------------
 function generateWordsModeId(options) {
   const {
@@ -359,7 +359,7 @@ const uidWordsDigitsCount = document.getElementById("uidWordsDigitsCount");
 const uidWordsMaxLength = document.getElementById("uidWordsMaxLength");
 
 // ------------------------------
-// PERSISTENCE HELPERS (unchanged)
+// PERSISTENCE HELPERS (STEP 4)
 // ------------------------------
 function savePasswordSettings() {
   const config = {
@@ -391,6 +391,7 @@ function saveUserIdSettings() {
   const config = {
     mode: uidMode.value,
 
+    // CVC mode
     syllables: Number(uidSyllables.value),
     addDigits: uidAddDigits.checked,
     digitsCount: Number(uidDigitsCount.value),
@@ -398,12 +399,14 @@ function saveUserIdSettings() {
     suffix: uidSuffix.value,
     maxLength: Number(uidMaxLength.value),
 
+    // Words mode
     wordsCount: Number(uidWordsCount.value),
     wordsSeparator: uidWordsSeparator.value,
     wordsAddDigits: uidWordsAddDigits.checked,
     wordsDigitsCount: Number(uidWordsDigitsCount.value),
     wordsMaxLength: Number(uidWordsMaxLength.value),
 
+    // Shared
     count: Number(uidCount.value)
   };
 
@@ -423,7 +426,7 @@ function loadUserIdSettings() {
 }
 
 // ------------------------------
-// RESTORE UI STATE
+// RESTORE UI STATE (STEP 4)
 // ------------------------------
 function showRestoredNotice(text) {
   const el = document.getElementById("restoreNotice");
@@ -466,114 +469,10 @@ function restoreUserIdUI() {
     return;
   }
 
+  // Mode
   if (config.mode === "cvc" || config.mode === "words") {
     uidMode.value = config.mode;
   }
 
-  if (config.syllables === 2 || config.syllables === 3) {
-    uidSyllables.value = config.syllables;
-  }
-
-  uidAddDigits.checked = !!config.addDigits;
-  uidDigitsCount.value = config.digitsCount || 2;
-
-  uidAddSuffix.checked = !!config.addSuffix;
-  uidSuffix.value = config.suffix || "";
-
-  uidMaxLength.value = config.maxLength || 15;
-
-  if (config.wordsCount === 2 || config.wordsCount === 3) {
-    uidWordsCount.value = config.wordsCount;
-  }
-
-  if (["_", ".", "-", "none"].includes(config.wordsSeparator)) {
-    uidWordsSeparator.value = config.wordsSeparator;
-  }
-
-  uidWordsAddDigits.checked = !!config.wordsAddDigits;
-  uidWordsDigitsCount.value = config.wordsDigitsCount || 2;
-
-  uidWordsMaxLength.value = config.wordsMaxLength || 20;
-
-  uidCount.value = config.count || 10;
-
-  uidDigitsCount.disabled = !uidAddDigits.checked;
-  uidSuffix.disabled = !uidAddSuffix.checked;
-
-  updateUserIdModeUI();
-
-  showRestoredNotice("User ID settings restored from previous session");
-}
-
-// ------------------------------
-// UI STATE
-// ------------------------------
-function updateIcloudUIState() {
-  const on = icloudPresetCheckbox.checked;
-
-  lengthInput.disabled = on;
-  lowercaseCheckbox.disabled = on;
-  uppercaseCheckbox.disabled = on;
-  digitsCheckbox.disabled = on;
-  symbolsCheckbox.disabled = on;
-  customSymbolsInput.disabled = on;
-
-  presetInfo.textContent = on ? "iCloud preset is active: settings are fixed." : "";
-}
-
-// ------------------------------
-// USER ID MODE UI (STEP 2)
-// ------------------------------
-function updateUserIdModeUI() {
-  const mode = uidMode.value;
-
-  if (mode === "cvc") {
-    uidCvcControls.style.display = "";
-    uidWordsControls.style.display = "none";
-  } else {
-    uidCvcControls.style.display = "none";
-    uidWordsControls.style.display = "";
-  }
-}
-
-// ------------------------------
-// LOAD WORD LISTS (STEP 2)
-// ------------------------------
-async function loadWordLists() {
-  try {
-    const [adjsRes, nounsRes] = await Promise.all([
-      fetch("data/adjs.json"),
-      fetch("data/nouns.json")
-    ]);
-
-    if (!adjsRes.ok || !nounsRes.ok) {
-      throw new Error("Network error");
-    }
-
-    const adjsJson = await adjsRes.json();
-    const nounsJson = await nounsRes.json();
-
-    WORD_ADJECTIVES = (adjsJson.adjs || adjsJson)
-      .map(normalizeWord)
-      .filter(Boolean);
-
-    WORD_NOUNS = (nounsJson.nouns || nounsJson)
-      .map(normalizeWord)
-      .filter(Boolean);
-
-    wordsLoaded = true;
-  } catch (e) {
-    console.error("Failed to load word lists", e);
-    uidError.textContent = "Could not load word lists. Please refresh the page.";
-  }
-}
-
-// ------------------------------
-// PASSWORD GENERATE HANDLER
-// ------------------------------
-function handleGenerate() {
-  if (icloudPresetCheckbox.checked) {
-    presetInfo.textContent = "iCloud preset is active: length and character sets are fixed.";
-
-    const password = generateIcloudPassword();
-    passwordInput
+  // CVC mode
+  if (config.syll
