@@ -75,71 +75,118 @@
     </div>
 
     <!-- USER ID GENERATOR TAB -->
-    <div id="userIdTab" class="tab-content">
+    <!-- USER ID GENERATOR TAB -->
+<div id="userIdTab" class="tab-content">
 
-      <div class="userid-section">
-        <h2>User ID Generator</h2>
+  <div class="userid-section">
+    <h2>User ID Generator</h2>
 
-        <label>
-          Syllables:
-          <select id="uidSyllables">
-            <option value="2">2</option>
-            <option value="3">3</option>
-          </select>
-        </label>
+    <!-- Mode selector -->
+    <label>
+      Mode:
+      <select id="uidMode">
+        <option value="cvc">CVC (pronounceable)</option>
+        <option value="words">Words (adjective + noun)</option>
+      </select>
+    </label>
 
-        <label>
-          <input type="checkbox" id="uidAddDigits" checked />
-          Add digits
-        </label>
+    <!-- CVC MODE CONTROLS -->
+    <div id="uidCvcControls">
+      <label>
+        Syllables:
+        <select id="uidSyllables">
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </label>
 
-        <label>
-          Digit count:
-          <select id="uidDigitsCount">
-            <option value="2">2</option>
-            <option value="3">3</option>
-          </select>
-        </label>
+      <label>
+        <input type="checkbox" id="uidAddDigits" checked />
+        Add digits
+      </label>
 
-        <label>
-          <input type="checkbox" id="uidAddSuffix" checked />
-          Add suffix
-        </label>
+      <label>
+        Digit count:
+        <select id="uidDigitsCount">
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </label>
 
-        <label>
-          Suffix:
-          <input type="text" id="uidSuffix" value="dev" />
-        </label>
+      <label>
+        <input type="checkbox" id="uidAddSuffix" checked />
+        Add suffix
+      </label>
 
-        <label>
-          Max length:
-          <input type="number" id="uidMaxLength" min="6" max="24" value="15" />
-        </label>
+      <label>
+        Suffix:
+        <input type="text" id="uidSuffix" value="dev" />
+      </label>
 
-        <label>
-          Generate count:
-          <select id="uidCount">
-            <option value="5">5</option>
-            <option value="10" selected>10</option>
-            <option value="20">20</option>
-          </select>
-        </label>
-
-        <div id="uidError" class="error"></div>
-
-        <button id="uidGenerateBtn">Generate User IDs</button>
-
-        <!-- Reset settings -->
-        <button id="resetUserIdSettings" style="margin-top:12px; background:#64748b;">
-          Reset Settings
-        </button>
-
-        <div id="uidResults"></div>
-      </div>
+      <label>
+        Max length:
+        <input type="number" id="uidMaxLength" min="6" max="24" value="15" />
+      </label>
     </div>
 
-  </div>
+    <!-- WORDS MODE CONTROLS -->
+    <div id="uidWordsControls" style="display:none;">
+      <label>
+        Words count:
+        <select id="uidWordsCount">
+          <option value="2">2 (adj + noun)</option>
+          <option value="3">3 (adj + adj + noun)</option>
+        </select>
+      </label>
 
-  <script src="script.js"></script>
-</body>
-</html>
+      <label>
+        Separator:
+        <select id="uidWordsSeparator">
+          <option value="_">_ (underscore)</option>
+          <option value=".">. (dot)</option>
+          <option value="-">- (dash)</option>
+          <option value="none">none</option>
+        </select>
+      </label>
+
+      <label>
+        <input type="checkbox" id="uidWordsAddDigits" />
+        Add digits
+      </label>
+
+      <label>
+        Digits count:
+        <select id="uidWordsDigitsCount">
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </label>
+
+      <label>
+        Max length:
+        <input type="number" id="uidWordsMaxLength" min="8" max="30" value="20" />
+      </label>
+    </div>
+
+    <!-- Shared controls -->
+    <label>
+      Generate count:
+      <select id="uidCount">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="20">20</option>
+      </select>
+    </label>
+
+    <div id="uidError" class="error"></div>
+
+    <button id="uidGenerateBtn">Generate User IDs</button>
+
+    <!-- Reset settings -->
+    <button id="resetUserIdSettings" style="margin-top:12px; background:#64748b;">
+      Reset Settings
+    </button>
+
+    <div id="uidResults"></div>
+  </div>
+</div>
