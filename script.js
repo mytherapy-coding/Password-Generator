@@ -1,6 +1,10 @@
-// ------------------------------
-// TAB SWITCHING
-// ------------------------------
+/* ============================================================
+   CLEAN, FULLY WORKING SCRIPT.JS — OPTION C (POLISHED VERSION)
+   ============================================================ */
+
+/* ------------------------------
+   TAB SWITCHING
+------------------------------ */
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
@@ -11,24 +15,23 @@ document.querySelectorAll(".tab").forEach((tab) => {
   });
 });
 
-// ------------------------------
-// CONSTANTS
-// ------------------------------
+/* ------------------------------
+   CONSTANTS
+------------------------------ */
 const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
 const VOWELS = "aeiouy";
 const DIGITS = "0123456789";
-const DEFAULT_SYMBOLS = "!@#$%^&*()-_=+[]{};:,.<>/?";
 
-// ------------------------------
-// WORD LISTS
-// ------------------------------
+/* ------------------------------
+   WORD LISTS
+------------------------------ */
 let WORD_ADJECTIVES = [];
 let WORD_NOUNS = [];
 let wordsLoaded = false;
 
-// ------------------------------
-// RANDOM HELPERS
-// ------------------------------
+/* ------------------------------
+   RANDOM HELPERS
+------------------------------ */
 function randomInt(max) {
   const arr = new Uint32Array(1);
   crypto.getRandomValues(arr);
@@ -39,65 +42,37 @@ function pick(pool) {
   return pool[randomInt(pool.length)];
 }
 
-// ------------------------------
-// SYMBOL VALIDATION
-// ------------------------------
+/* ------------------------------
+   PASSWORD GENERATOR
+------------------------------ */
 function validateSymbolsInput(text) {
-  if (!text) {
-    return { ok: false, msg: "Please enter at least 1 symbol (e.g., !@#$)." };
-  }
-
-  if (/\s/.test(text)) {
-    return { ok: false, msg: "Spaces are not allowed in the symbols set." };
-  }
-
-  if (/[a-zA-Z0-9]/.test(text)) {
-    return { ok: false, msg: "Symbols must not include letters or digits." };
-  }
+  if (!text) return { ok: false, msg: "Please enter at least 1 symbol." };
+  if (/\s/.test(text)) return { ok: false, msg: "No spaces allowed." };
+  if (/[a-zA-Z0-9]/.test(text)) return { ok: false, msg: "Symbols cannot include letters or digits." };
 
   const unique = [...new Set(text)].join("");
-  if (!unique) {
-    return { ok: false, msg: "Your symbols set is empty after validation." };
-  }
-
-  return { ok: true, symbols: unique };
+  return unique ? { ok: true, symbols: unique } : { ok: false, msg: "Symbols empty after filtering." };
 }
 
-// ------------------------------
-// CHARSET BUILDER
-// ------------------------------
-function getCharset(options) {
+function getCharset(opts) {
   let pool = "";
+  if (opts.useLower) pool += "abcdefghijklmnopqrstuvwxyz";
+  if (opts.useUpper) pool += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  if (opts.useDigits) pool += "0123456789";
+  if (opts.useSymbols) pool += opts.symbols;
 
-  if (options.useLower) pool += "abcdefghijklmnopqrstuvwxyz";
-  if (options.useUpper) pool += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  if (options.useDigits) pool += "0123456789";
-  if (options.useSymbols) pool += options.symbols;
-
-  if (!pool) {
-    return { ok: false, msg: "Select at least one character type." };
-  }
-
-  return { ok: true, pool };
+  return pool ? { ok: true, pool } : { ok: false, msg: "Select at least one character type." };
 }
 
-// ------------------------------
-// PASSWORD GENERATOR
-// ------------------------------
-function generatePassword(options) {
-  const { length, pool } = options;
-  let result = "";
-
-  for (let i = 0; i < length; i++) {
-    result += pick(pool);
-  }
-
-  return result;
+function generatePassword({ length, pool }) {
+  let out = "";
+  for (let i = 0; i < length; i++) out += pick(pool);
+  return out;
 }
 
-// ------------------------------
-// iCLOUD PASSWORD GENERATOR
-// ------------------------------
+/* ------------------------------
+   iCLOUD PASSWORD
+------------------------------ */
 function generateSyllable() {
   return pick(CONSONANTS) + pick(VOWELS) + pick(CONSONANTS);
 }
@@ -107,174 +82,97 @@ function generateChunk6() {
 }
 
 function generateIcloudPassword() {
-  let chunks = [
-    generateChunk6(),
-    generateChunk6(),
-    generateChunk6()
-  ];
+  let chunks = [generateChunk6(), generateChunk6(), generateChunk6()];
+  let pwd = chunks.join("-");
 
-  let password = chunks.join("-");
-
-  const candidatePositions = [];
-  for (let i = 0; i < password.length; i++) {
-    if (password[i] === "-") {
-      if (i - 1 >= 0) candidatePositions.push(i - 1);
-      if (i + 1 < password.length) candidatePositions.push(i + 1);
+  // Insert digit near hyphens
+  const positions = [];
+  for (let i = 0; i < pwd.length; i++) {
+    if (pwd[i] === "-") {
+      if (i - 1 >= 0) positions.push(i - 1);
+      if (i + 1 < pwd.length) positions.push(i + 1);
     }
   }
-  candidatePositions.push(password.length - 1);
+  positions.push(pwd.length - 1);
 
-  const digitPos = randomInt(candidatePositions.length);
-  const digit = pick(DIGITS);
-  password = password.slice(0, candidatePositions[digitPos]) + digit + password.slice(candidatePositions[digitPos] + 1);
+  const pos = pick(positions);
+  pwd = pwd.slice(0, pos) + pick(DIGITS) + pwd.slice(pos + 1);
 
-  const validUpperPositions = [];
-  for (let i = 0; i < password.length; i++) {
-    const ch = password[i];
-    if (ch === "-" || /\d/.test(ch)) continue;
-    validUpperPositions.push(i);
+  // Uppercase one letter
+  const letters = [];
+  for (let i = 0; i < pwd.length; i++) {
+    if (/[a-z]/.test(pwd[i])) letters.push(i);
   }
+  const up = pick(letters);
+  pwd = pwd.slice(0, up) + pwd[up].toUpperCase() + pwd.slice(up + 1);
 
-  const upperPos = randomInt(validUpperPositions.length);
-  const upperChar = password[validUpperPositions[upperPos]].toUpperCase();
-  password = password.slice(0, validUpperPositions[upperPos]) + upperChar + password.slice(validUpperPositions[upperPos] + 1);
-
-  return password;
+  return pwd;
 }
 
-// ------------------------------
-// USER ID GENERATOR (CVC MODE)
-// ------------------------------
-function generateCvcStem(syllablesCount) {
-  let stem = "";
-  for (let i = 0; i < syllablesCount; i++) {
-    stem += pick(CONSONANTS) + pick(VOWELS) + pick(CONSONANTS);
-  }
-  return stem;
+/* ------------------------------
+   USER ID — CVC MODE
+------------------------------ */
+function generateCvcStem(n) {
+  let out = "";
+  for (let i = 0; i < n; i++) out += pick(CONSONANTS) + pick(VOWELS) + pick(CONSONANTS);
+  return out;
 }
 
-function normalizeSuffix(text) {
-  return text.trim().toLowerCase();
-}
+function generateCvcId(opts) {
+  let id = generateCvcStem(opts.syllables);
 
-function validateUserIdOptions(options) {
-  const { syllables, addDigits, digitsCount, addSuffix, suffix, maxLength } = options;
-
-  if (addSuffix && suffix.length > 0) {
-    if (/[^a-z0-9]/i.test(suffix)) {
-      return { ok: false, msg: "Suffix can contain only letters and digits." };
-    }
+  if (opts.addDigits) {
+    for (let i = 0; i < opts.digitsCount; i++) id += pick(DIGITS);
   }
 
-  const base = 3 * syllables;
-  const digits = addDigits ? digitsCount : 0;
-  const suffixLen = addSuffix && suffix.length > 0 ? (1 + suffix.length) : 0;
-
-  const minLen = base + digits + suffixLen;
-
-  if (maxLength < minLen) {
-    return { ok: false, msg: "Max length is too small for the selected options." };
-  }
-
-  return { ok: true };
-}
-
-function generateUserId(options) {
-  const { syllables, addDigits, digitsCount, addSuffix, suffix, maxLength } = options;
-
-  let id = generateCvcStem(syllables);
-
-  if (addDigits) {
-    for (let i = 0; i < digitsCount; i++) {
-      id += pick(DIGITS);
-    }
-  }
-
-  if (addSuffix && suffix.length > 0) {
-    id += "_" + suffix;
-  }
+  if (opts.addSuffix && opts.suffix) id += "_" + opts.suffix.toLowerCase();
 
   if (!/^[a-z]/.test(id)) return null;
-  if (id.length > maxLength) return null;
+  if (id.length > opts.maxLength) return null;
 
   return id;
 }
 
-function generateUserIdList(options, count) {
-  const results = new Set();
-  let attempts = 0;
-
-  while (results.size < count && attempts < 50) {
-    const id = generateUserId(options);
-    if (id) results.add(id);
-    attempts++;
-  }
-
-  if (results.size < count) {
-    return { ok: false, msg: "Could not generate valid usernames. Increase max length." };
-  }
-
-  return { ok: true, list: Array.from(results) };
+/* ------------------------------
+   USER ID — WORDS MODE
+------------------------------ */
+function normalizeWord(w) {
+  return w.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-// ------------------------------
-// WORD NORMALIZATION
-// ------------------------------
-function normalizeWord(raw) {
-  return raw
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "")
-    .trim();
-}
+function generateWordsId(opts) {
+  if (!wordsLoaded) return null;
 
-// ------------------------------
-// WORDS MODE GENERATOR
-// ------------------------------
-function generateWordsModeId(options) {
-  const {
-    wordsCount,
-    separator,
-    addDigits,
-    digitsCount,
-    maxLength
-  } = options;
+  const sep = opts.separator === "none" ? "" : opts.separator;
 
-  if (!wordsLoaded) {
-    uidError.textContent = "Word lists not loaded yet. Please wait or refresh.";
-    return null;
-  }
-
-  const sep = separator === "none" ? "" : separator;
-
-  const maxAttempts = 50;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  for (let attempt = 0; attempt < 50; attempt++) {
     const words = [];
 
-    if (wordsCount === 2) {
-      const adj = WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)];
-      const noun = WORD_NOUNS[randomInt(WORD_NOUNS.length)];
-      words.push(adj, noun);
+    if (opts.wordsCount === 2) {
+      words.push(
+        WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)],
+        WORD_NOUNS[randomInt(WORD_NOUNS.length)]
+      );
     } else {
-      const adj1 = WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)];
-      const adj2 = WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)];
-      const noun = WORD_NOUNS[randomInt(WORD_NOUNS.length)];
-      words.push(adj1, adj2, noun);
+      words.push(
+        WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)],
+        WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)],
+        WORD_NOUNS[randomInt(WORD_NOUNS.length)]
+      );
     }
 
     let id = words.join(sep);
 
-    if (addDigits) {
-      let digits = "";
-      for (let i = 0; i < digitsCount; i++) {
-        digits += pick(DIGITS);
-      }
-      id += sep + digits;
+    if (opts.addDigits) {
+      let d = "";
+      for (let i = 0; i < opts.digitsCount; i++) d += pick(DIGITS);
+      id += sep + d;
     }
 
     id = id.toLowerCase().replace(/[^a-z0-9_.-]/g, "");
 
     if (!/^[a-z]/.test(id)) continue;
-    if (id.length > maxLength) continue;
+    if (id.length > opts.maxLength) continue;
 
     return id;
   }
@@ -282,38 +180,28 @@ function generateWordsModeId(options) {
   return null;
 }
 
-// ------------------------------
-// ENTROPY + STRENGTH
-// ------------------------------
+/* ------------------------------
+   ENTROPY
+------------------------------ */
 function calculateEntropyBits(length, poolSize) {
   return length * Math.log2(poolSize);
 }
 
-function strengthLabel(bits) {
-  if (bits < 45) return { label: "Weak", color: "red" };
-  if (bits < 70) return { label: "Medium", color: "orange" };
-  return { label: "Strong", color: "green" };
-}
-
-// ------------------------------
-// CLIPBOARD
-// ------------------------------
+/* ------------------------------
+   CLIPBOARD
+------------------------------ */
 async function copyToClipboard(text) {
-  if (!text) {
-    return { ok: false, msg: "Generate a password first." };
-  }
-
   try {
     await navigator.clipboard.writeText(text);
-    return { ok: true };
+    return true;
   } catch {
-    return { ok: false, msg: "Could not copy. Please copy manually." };
+    return false;
   }
 }
 
-// ------------------------------
-// DOM ELEMENTS
-// ------------------------------
+/* ------------------------------
+   DOM ELEMENTS
+------------------------------ */
 const lengthInput = document.getElementById("length");
 const lowercaseCheckbox = document.getElementById("lowercase");
 const uppercaseCheckbox = document.getElementById("uppercase");
@@ -335,22 +223,16 @@ const generateBtn = document.getElementById("generate");
 const clearBtn = document.getElementById("clear");
 const copyBtn = document.getElementById("copy");
 
-// USER ID DOM
+const uidMode = document.getElementById("uidMode");
+const uidCvcControls = document.getElementById("uidCvcControls");
+const uidWordsControls = document.getElementById("uidWordsControls");
+
 const uidSyllables = document.getElementById("uidSyllables");
 const uidAddDigits = document.getElementById("uidAddDigits");
 const uidDigitsCount = document.getElementById("uidDigitsCount");
 const uidAddSuffix = document.getElementById("uidAddSuffix");
 const uidSuffix = document.getElementById("uidSuffix");
 const uidMaxLength = document.getElementById("uidMaxLength");
-const uidCount = document.getElementById("uidCount");
-const uidGenerateBtn = document.getElementById("uidGenerateBtn");
-const uidError = document.getElementById("uidError");
-const uidResults = document.getElementById("uidResults");
-
-// STEP 2 DOM
-const uidMode = document.getElementById("uidMode");
-const uidCvcControls = document.getElementById("uidCvcControls");
-const uidWordsControls = document.getElementById("uidWordsControls");
 
 const uidWordsCount = document.getElementById("uidWordsCount");
 const uidWordsSeparator = document.getElementById("uidWordsSeparator");
@@ -358,121 +240,213 @@ const uidWordsAddDigits = document.getElementById("uidWordsAddDigits");
 const uidWordsDigitsCount = document.getElementById("uidWordsDigitsCount");
 const uidWordsMaxLength = document.getElementById("uidWordsMaxLength");
 
-// ------------------------------
-// PERSISTENCE HELPERS (STEP 4)
-// ------------------------------
-function savePasswordSettings() {
-  const config = {
-    length: Number(lengthInput.value),
+const uidCount = document.getElementById("uidCount");
+const uidGenerateBtn = document.getElementById("uidGenerateBtn");
+const uidResults = document.getElementById("uidResults");
+const uidError = document.getElementById("uidError");
+
+const resetUserIdSettingsBtn = document.getElementById("resetUserIdSettings");
+
+/* ------------------------------
+   UI STATE
+------------------------------ */
+function updateIcloudUIState() {
+  const on = icloudPresetCheckbox.checked;
+  lengthInput.disabled = on;
+  lowercaseCheckbox.disabled = on;
+  uppercaseCheckbox.disabled = on;
+  digitsCheckbox.disabled = on;
+  symbolsCheckbox.disabled = on;
+  customSymbolsInput.disabled = on;
+
+  presetInfo.textContent = on ? "iCloud preset is active." : "";
+}
+
+function updateUserIdModeUI() {
+  const mode = uidMode.value;
+  uidCvcControls.style.display = mode === "cvc" ? "" : "none";
+  uidWordsControls.style.display = mode === "words" ? "" : "none";
+}
+
+/* ------------------------------
+   WORD LIST LOADING
+------------------------------ */
+async function loadWordLists() {
+  try {
+    const [a, n] = await Promise.all([
+      fetch("data/adjs.json"),
+      fetch("data/nouns.json")
+    ]);
+
+    const adjs = await a.json();
+    const nouns = await n.json();
+
+    WORD_ADJECTIVES = (adjs.adjs || adjs).map(normalizeWord).filter(Boolean);
+    WORD_NOUNS = (nouns.nouns || nouns).map(normalizeWord).filter(Boolean);
+
+    wordsLoaded = true;
+  } catch (e) {
+    uidError.textContent = "Failed to load word lists.";
+  }
+}
+
+/* ------------------------------
+   PASSWORD HANDLER
+------------------------------ */
+function handleGeneratePassword() {
+  lengthError.textContent = "";
+  symbolError.textContent = "";
+  copyError.textContent = "";
+
+  if (icloudPresetCheckbox.checked) {
+    const pwd = generateIcloudPassword();
+    passwordInput.value = pwd;
+    strengthLabelEl.textContent = "";
+    strengthBarEl.style.background = "green";
+    return;
+  }
+
+  const length = Number(lengthInput.value);
+  if (length < 4 || length > 64) {
+    lengthError.textContent = "Length must be 4–64.";
+    return;
+  }
+
+  let symbols = "";
+  if (symbolsCheckbox.checked) {
+    const val = validateSymbolsInput(customSymbolsInput.value);
+    if (!val.ok) {
+      symbolError.textContent = val.msg;
+      return;
+    }
+    symbols = val.symbols;
+  }
+
+  const charset = getCharset({
     useLower: lowercaseCheckbox.checked,
     useUpper: uppercaseCheckbox.checked,
     useDigits: digitsCheckbox.checked,
     useSymbols: symbolsCheckbox.checked,
-    customSymbols: customSymbolsInput.value,
-    icloudPreset: icloudPresetCheckbox.checked
-  };
+    symbols
+  });
 
-  localStorage.setItem("passwordSettings", JSON.stringify(config));
-}
-
-function loadPasswordSettings() {
-  const raw = localStorage.getItem("passwordSettings");
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    console.warn("Password settings corrupted — using defaults.");
-    return null;
-  }
-}
-
-function saveUserIdSettings() {
-  const config = {
-    mode: uidMode.value,
-
-    // CVC mode
-    syllables: Number(uidSyllables.value),
-    addDigits: uidAddDigits.checked,
-    digitsCount: Number(uidDigitsCount.value),
-    addSuffix: uidAddSuffix.checked,
-    suffix: uidSuffix.value,
-    maxLength: Number(uidMaxLength.value),
-
-    // Words mode
-    wordsCount: Number(uidWordsCount.value),
-    wordsSeparator: uidWordsSeparator.value,
-    wordsAddDigits: uidWordsAddDigits.checked,
-    wordsDigitsCount: Number(uidWordsDigitsCount.value),
-    wordsMaxLength: Number(uidWordsMaxLength.value),
-
-    // Shared
-    count: Number(uidCount.value)
-  };
-
-  localStorage.setItem("userIdSettings", JSON.stringify(config));
-}
-
-function loadUserIdSettings() {
-  const raw = localStorage.getItem("userIdSettings");
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    console.warn("User ID settings corrupted — using defaults.");
-    return null;
-  }
-}
-
-// ------------------------------
-// RESTORE UI STATE (STEP 4)
-// ------------------------------
-function showRestoredNotice(text) {
-  const el = document.getElementById("restoreNotice");
-  el.textContent = text;
-
-  setTimeout(() => {
-    el.textContent = "";
-  }, 2500);
-}
-
-function restorePasswordUI() {
-  const config = loadPasswordSettings();
-  if (!config) return;
-
-  if (typeof config.length === "number" && config.length >= 4 && config.length <= 64) {
-    lengthInput.value = config.length;
-  }
-
-  lowercaseCheckbox.checked = !!config.useLower;
-  uppercaseCheckbox.checked = !!config.useUpper;
-  digitsCheckbox.checked = !!config.useDigits;
-  symbolsCheckbox.checked = !!config.useSymbols;
-
-  if (typeof config.customSymbols === "string") {
-    customSymbolsInput.value = config.customSymbols;
-  }
-
-  icloudPresetCheckbox.checked = !!config.icloudPreset;
-
-  updateIcloudUIState();
-  updateGenerateButtonState();
-
-  showRestoredNotice("Password settings restored from previous session");
-}
-
-function restoreUserIdUI() {
-  const config = loadUserIdSettings();
-  if (!config) {
-    updateUserIdModeUI();
+  if (!charset.ok) {
+    symbolError.textContent = charset.msg;
     return;
   }
 
-  // Mode
-  if (config.mode === "cvc" || config.mode === "words") {
-    uidMode.value = config.mode;
+  const pwd = generatePassword({ length, pool: charset.pool });
+  passwordInput.value = pwd;
+
+  const bits = calculateEntropyBits(length, charset.pool.length);
+  strengthLabelEl.textContent = bits < 45 ? "Weak" : bits < 70 ? "Medium" : "Strong";
+  strengthBarEl.style.background = bits < 45 ? "red" : bits < 70 ? "orange" : "green";
+}
+
+/* ------------------------------
+   USER ID HANDLER
+------------------------------ */
+function handleGenerateUserIds() {
+  uidError.textContent = "";
+  uidResults.innerHTML = "";
+
+  const mode = uidMode.value;
+  const count = Number(uidCount.value);
+  const results = [];
+
+  for (let i = 0; i < count; i++) {
+    let id = null;
+
+    if (mode === "cvc") {
+      id = generateCvcId({
+        syllables: Number(uidSyllables.value),
+        addDigits: uidAddDigits.checked,
+        digitsCount: Number(uidDigitsCount.value),
+        addSuffix: uidAddSuffix.checked,
+        suffix: uidSuffix.value,
+        maxLength: Number(uidMaxLength.value)
+      });
+    } else {
+      id = generateWordsId({
+        wordsCount: Number(uidWordsCount.value),
+        separator: uidWordsSeparator.value,
+        addDigits: uidWordsAddDigits.checked,
+        digitsCount: Number(uidWordsDigitsCount.value),
+        maxLength: Number(uidWordsMaxLength.value)
+      });
+    }
+
+    if (!id) {
+      uidError.textContent = "Could not generate valid IDs. Increase max length.";
+      return;
+    }
+
+    results.push(id);
   }
 
-  // CVC mode
-  if (config.syll
+  results.forEach((id) => {
+    const row = document.createElement("div");
+    row.className = "uid-row";
+
+    const span = document.createElement("span");
+    span.textContent = id;
+
+    const btn = document.createElement("button");
+    btn.textContent = "Copy";
+    btn.addEventListener("click", () => copyToClipboard(id));
+
+    row.appendChild(span);
+    row.appendChild(btn);
+    uidResults.appendChild(row);
+  });
+}
+
+/* ------------------------------
+   RESET USER ID SETTINGS
+------------------------------ */
+resetUserIdSettingsBtn.addEventListener("click", () => {
+  localStorage.removeItem("userIdSettings");
+
+  uidMode.value = "cvc";
+  uidSyllables.value = 2;
+  uidAddDigits.checked = true;
+  uidDigitsCount.value = 2;
+  uidAddSuffix.checked = true;
+  uidSuffix.value = "dev";
+  uidMaxLength.value = 15;
+
+  uidWordsCount.value = 2;
+  uidWordsSeparator.value = "_";
+  uidWordsAddDigits.checked = false;
+  uidWordsDigitsCount.value = 2;
+  uidWordsMaxLength.value = 20;
+
+  uidCount.value = 10;
+
+  updateUserIdModeUI();
+  uidResults.innerHTML = "";
+  uidError.textContent = "";
+});
+
+/* ------------------------------
+   EVENT LISTENERS
+------------------------------ */
+generateBtn.addEventListener("click", handleGeneratePassword);
+clearBtn.addEventListener("click", () => (passwordInput.value = ""));
+copyBtn.addEventListener("click", async () => {
+  if (!(await copyToClipboard(passwordInput.value))) {
+    copyError.textContent = "Copy failed.";
+  }
+});
+
+icloudPresetCheckbox.addEventListener("change", updateIcloudUIState);
+
+uidMode.addEventListener("change", updateUserIdModeUI);
+uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
+
+/* ------------------------------
+   INIT
+------------------------------ */
+updateIcloudUIState();
+updateUserIdModeUI();
+loadWordLists();
