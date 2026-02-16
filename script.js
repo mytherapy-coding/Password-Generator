@@ -85,7 +85,6 @@ function generateIcloudPassword() {
   let chunks = [generateChunk6(), generateChunk6(), generateChunk6()];
   let pwd = chunks.join("-");
 
-  // Insert digit near hyphens
   const positions = [];
   for (let i = 0; i < pwd.length; i++) {
     if (pwd[i] === "-") {
@@ -98,7 +97,6 @@ function generateIcloudPassword() {
   const pos = pick(positions);
   pwd = pwd.slice(0, pos) + pick(DIGITS) + pwd.slice(pos + 1);
 
-  // Uppercase one letter
   const letters = [];
   for (let i = 0; i < pwd.length; i++) {
     if (/[a-z]/.test(pwd[i])) letters.push(i);
