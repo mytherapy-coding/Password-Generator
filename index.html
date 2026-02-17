@@ -48,7 +48,25 @@
       <div id="strengthLabel"></div>
       <div id="strengthBar"></div>
 
-      <div id="restoreNotice"></div>
+      <!-- CRACK TIME BLOCK -->
+      <div id="crackTimeContainer" class="crack-time" style="display:none; margin-top:8px;">
+        <div id="crackTimeHeader">Estimated crack time (offline, fast hash):</div>
+        <label>
+          Attacker hardware (offline, fast hash):
+          <select id="crackHardware">
+            <option value="cpu">High-end CPU (~1×10⁹ guesses/sec)</option>
+            <option value="rtx4090">RTX 4090 (~5×10¹¹ guesses/sec)</option>
+            <option value="rig8x4090">8× RTX 4090 rig (~4×10¹² guesses/sec)</option>
+            <option value="datacenter">Datacenter attacker (~1×10¹⁴ guesses/sec)</option>
+          </select>
+        </label>
+        <div id="crackTimeValue" class="info" style="margin-top:4px;"></div>
+        <div id="crackTimeWarning" class="error" style="margin-top:4px;"></div>
+        <div id="crackTimeDisclaimer" class="note" style="margin-top:4px; font-size:0.85em;">
+          Assumes attacker already has the password hash and can guess offline using fast hashing algorithms (e.g. MD5/NTLM/SHA‑1).
+          Real systems using slow hashing (bcrypt, Argon2id) can increase attack time by orders of magnitude.
+        </div>
+      </div>
     </div>
 
     <!-- USER ID TAB -->
