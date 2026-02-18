@@ -1,5 +1,5 @@
 /* ============================================================
-   CLEAN, FULLY WORKING SCRIPT.JS — WITH CRACK-TIME ESTIMATION
+   CLEAN, FULLY WORKING SCRIPT.JS — OPTION C (POLISHED VERSION)
    ============================================================ */
 
 /* ------------------------------
@@ -21,16 +21,6 @@ document.querySelectorAll(".tab").forEach((tab) => {
 const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
 const VOWELS = "aeiouy";
 const DIGITS = "0123456789";
-
-/* Crack-time hardware profiles (guesses per second) */
-const CRACK_HARDWARE_PROFILES = {
-  cpu: 1e9,          // High-end CPU
-  rtx4090: 5e11,     // Single RTX 4090
-  rig8x4090: 4e12,   // 8x RTX 4090 rig
-  datacenter: 1e14   // Datacenter / nation-state
-};
-
-const LOCAL_STORAGE_CRACK_KEY = "crackHardwareProfile";
 
 /* ------------------------------
    WORD LISTS
@@ -196,39 +186,6 @@ function calculateEntropyBits(length, poolSize) {
 }
 
 /* ------------------------------
-   CRACK-TIME ESTIMATION
------------------------------- */
-function formatCrackTime(seconds) {
-  if (seconds < 1) return "< 1 second";
-
-  const minute = 60;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-  const week = 7 * day;
-  const year = 365 * day;
-
-  if (seconds < minute) return `~${Math.round(seconds)} seconds`;
-  if (seconds < hour) return `~${Math.round(seconds / minute)} minutes`;
-  if (seconds < day) return `~${Math.round(seconds / hour)} hours`;
-  if (seconds < week) return `~${Math.round(seconds / day)} days`;
-  if (seconds < year) return `~${Math.round(seconds / week)} weeks`;
-
-  const years = seconds / year;
-  if (years < 1e6) {
-    const rounded = years < 10 ? years.toFixed(1) : Math.round(years);
-    return `~${rounded} years`;
-  }
-
-  return "> 10 million years";
-}
-
-function estimateCrackTimeSeconds(entropyBits, guessesPerSecond) {
-  const keyspace = Math.pow(2, entropyBits);
-  const expectedGuesses = 0.5 * keyspace;
-  return expectedGuesses / guessesPerSecond;
-}
-
-/* ------------------------------
    CLIPBOARD
 ------------------------------ */
 async function copyToClipboard(text) {
@@ -263,12 +220,6 @@ const presetInfo = document.getElementById("presetInfo");
 const generateBtn = document.getElementById("generate");
 const clearBtn = document.getElementById("clear");
 const copyBtn = document.getElementById("copy");
-
-/* Crack-time DOM */
-const crackTimeContainer = document.getElementById("crackTimeContainer");
-const crackHardwareSelect = document.getElementById("crackHardware");
-const crackTimeValue = document.getElementById("crackTimeValue");
-const crackTimeWarning = document.getElementById("crackTimeWarning");
 
 const uidMode = document.getElementById("uidMode");
 const uidCvcControls = document.getElementById("uidCvcControls");
@@ -315,33 +266,79 @@ function updateUserIdModeUI() {
   uidWordsControls.style.display = mode === "words" ? "" : "none";
 }
 
-/* Crack-time UI update */
-function updateCrackTimeUI(entropyBits) {
-  if (!Number.isFinite(entropyBits) || entropyBits <= 0) {
-    crackTimeContainer.style.display = "none";
-    return;
-  }
+/* ------------------------------
+   PASSWORD PERSISTENCE
+------------------------------ */
+function savePasswordSettings() {
+  const settings = {
+    length: lengthInput.value,
+    lowercase: lowercaseCheckbox.checked,
+    uppercase: uppercaseCheckbox.checked,
+    digits: digitsCheckbox.checked,
+    symbols: symbolsCheckbox.checked,
+    customSymbols: customSymbolsInput.value,
+    icloudPreset: icloudPresetCheckbox.checked
+  };
+  localStorage.setItem("passwordSettings", JSON.stringify(settings));
+}
 
-  const profileKey = crackHardwareSelect.value || "cpu";
-  const guessesPerSecond = CRACK_HARDWARE_PROFILES[profileKey] || CRACK_HARDWARE_PROFILES.cpu;
-
-  const seconds = estimateCrackTimeSeconds(entropyBits, guessesPerSecond);
-  const formatted = formatCrackTime(seconds);
-
-  crackTimeContainer.style.display = "";
-  crackTimeValue.textContent = `≈ ${formatted}`;
-  crackTimeWarning.textContent = "";
-
-  if (entropyBits < 20) {
-    crackTimeWarning.textContent =
-      "This password is extremely weak and can be cracked almost instantly in an offline attack.";
-  }
-
+function restorePasswordSettings() {
+  const raw = localStorage.getItem("passwordSettings");
+  if (!raw) return;
   try {
-    localStorage.setItem(LOCAL_STORAGE_CRACK_KEY, profileKey);
-  } catch {
-    // ignore
-  }
+    const s = JSON.parse(raw);
+    lengthInput.value = s.length ?? "12";
+    lowercaseCheckbox.checked = s.lowercase ?? true;
+    uppercaseCheckbox.checked = s.uppercase ?? true;
+    digitsCheckbox.checked = s.digits ?? true;
+    symbolsCheckbox.checked = s.symbols ?? false;
+    customSymbolsInput.value = s.customSymbols ?? "";
+    icloudPresetCheckbox.checked = s.icloudPreset ?? false;
+  } catch (_) {}
+}
+
+/* ------------------------------
+   USER ID PERSISTENCE
+------------------------------ */
+function saveUserIdSettings() {
+  const settings = {
+    mode: uidMode.value,
+    syllables: uidSyllables.value,
+    addDigits: uidAddDigits.checked,
+    digitsCount: uidDigitsCount.value,
+    addSuffix: uidAddSuffix.checked,
+    suffix: uidSuffix.value,
+    maxLength: uidMaxLength.value,
+    wordsCount: uidWordsCount.value,
+    separator: uidWordsSeparator.value,
+    wordsAddDigits: uidWordsAddDigits.checked,
+    wordsDigitsCount: uidWordsDigitsCount.value,
+    wordsMaxLength: uidWordsMaxLength.value,
+    count: uidCount.value
+  };
+  localStorage.setItem("userIdSettings", JSON.stringify(settings));
+}
+
+function restoreUserIdSettings() {
+  const raw = localStorage.getItem("userIdSettings");
+  if (!raw) return;
+  try {
+    const s = JSON.parse(raw);
+    uidMode.value = s.mode ?? "cvc";
+    uidSyllables.value = s.syllables ?? "2";
+    uidAddDigits.checked = s.addDigits ?? true;
+    uidDigitsCount.value = s.digitsCount ?? "2";
+    uidAddSuffix.checked = s.addSuffix ?? true;
+    uidSuffix.value = s.suffix ?? "dev";
+    uidMaxLength.value = s.maxLength ?? "15";
+    uidWordsCount.value = s.wordsCount ?? "2";
+    uidWordsSeparator.value = s.separator ?? "_";
+    uidWordsAddDigits.checked = s.wordsAddDigits ?? false;
+    uidWordsDigitsCount.value = s.wordsDigitsCount ?? "2";
+    uidWordsMaxLength.value = s.wordsMaxLength ?? "20";
+    uidCount.value = s.count ?? "10";
+    updateUserIdModeUI();
+  } catch (_) {}
 }
 
 /* ------------------------------
@@ -373,25 +370,18 @@ function handleGeneratePassword() {
   lengthError.textContent = "";
   symbolError.textContent = "";
   copyError.textContent = "";
-  crackTimeWarning.textContent = "";
-  crackTimeContainer.style.display = "none";
 
   if (icloudPresetCheckbox.checked) {
     const pwd = generateIcloudPassword();
     passwordInput.value = pwd;
     strengthLabelEl.textContent = "";
     strengthBarEl.style.background = "green";
-
-    // iCloud preset: fixed entropy estimate (~71 bits)
-    const entropyBits = 71;
-    updateCrackTimeUI(entropyBits);
     return;
   }
 
   const length = Number(lengthInput.value);
   if (length < 4 || length > 64) {
     lengthError.textContent = "Length must be 4–64.";
-    crackTimeContainer.style.display = "none";
     return;
   }
 
@@ -400,7 +390,6 @@ function handleGeneratePassword() {
     const val = validateSymbolsInput(customSymbolsInput.value);
     if (!val.ok) {
       symbolError.textContent = val.msg;
-      crackTimeContainer.style.display = "none";
       return;
     }
     symbols = val.symbols;
@@ -416,7 +405,6 @@ function handleGeneratePassword() {
 
   if (!charset.ok) {
     symbolError.textContent = charset.msg;
-    crackTimeContainer.style.display = "none";
     return;
   }
 
@@ -426,8 +414,6 @@ function handleGeneratePassword() {
   const bits = calculateEntropyBits(length, charset.pool.length);
   strengthLabelEl.textContent = bits < 45 ? "Weak" : bits < 70 ? "Medium" : "Strong";
   strengthBarEl.style.background = bits < 45 ? "red" : bits < 70 ? "orange" : "green";
-
-  updateCrackTimeUI(bits);
 }
 
 /* ------------------------------
@@ -521,8 +507,9 @@ resetUserIdSettingsBtn.addEventListener("click", () => {
 generateBtn.addEventListener("click", handleGeneratePassword);
 clearBtn.addEventListener("click", () => {
   passwordInput.value = "";
-  crackTimeContainer.style.display = "none";
-  crackTimeWarning.textContent = "";
+  strengthLabelEl.textContent = "";
+  strengthBarEl.style.background = "gray";
+  copyError.textContent = "";
 });
 copyBtn.addEventListener("click", async () => {
   if (!(await copyToClipboard(passwordInput.value))) {
@@ -530,77 +517,38 @@ copyBtn.addEventListener("click", async () => {
   }
 });
 
+[
+  lengthInput, lowercaseCheckbox, uppercaseCheckbox, digitsCheckbox,
+  symbolsCheckbox, customSymbolsInput
+].forEach((el) => {
+  el.addEventListener("change", savePasswordSettings);
+});
+customSymbolsInput.addEventListener("input", savePasswordSettings);
+
 icloudPresetCheckbox.addEventListener("change", () => {
   updateIcloudUIState();
-  crackTimeContainer.style.display = "none";
-  crackTimeWarning.textContent = "";
+  savePasswordSettings();
 });
 
-uidMode.addEventListener("change", updateUserIdModeUI);
+uidMode.addEventListener("change", () => {
+  updateUserIdModeUI();
+  saveUserIdSettings();
+});
 uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
 
-crackHardwareSelect.addEventListener("change", () => {
-  // Recompute crack time for current password if any
-  const pwd = passwordInput.value;
-  if (!pwd) {
-    crackTimeContainer.style.display = "none";
-    crackTimeWarning.textContent = "";
-    try {
-      localStorage.setItem(LOCAL_STORAGE_CRACK_KEY, crackHardwareSelect.value);
-    } catch {
-      // ignore
-    }
-    return;
-  }
-
-  if (icloudPresetCheckbox.checked) {
-    updateCrackTimeUI(71);
-    return;
-  }
-
-  const length = Number(lengthInput.value);
-  let symbols = "";
-  if (symbolsCheckbox.checked) {
-    const val = validateSymbolsInput(customSymbolsInput.value);
-    if (!val.ok) {
-      crackTimeContainer.style.display = "none";
-      return;
-    }
-    symbols = val.symbols;
-  }
-
-  const charset = getCharset({
-    useLower: lowercaseCheckbox.checked,
-    useUpper: uppercaseCheckbox.checked,
-    useDigits: digitsCheckbox.checked,
-    useSymbols: symbolsCheckbox.checked,
-    symbols
-  });
-
-  if (!charset.ok) {
-    crackTimeContainer.style.display = "none";
-    return;
-  }
-
-  const bits = calculateEntropyBits(length, charset.pool.length);
-  updateCrackTimeUI(bits);
+[
+  uidSyllables, uidAddDigits, uidDigitsCount, uidAddSuffix, uidSuffix, uidMaxLength,
+  uidWordsCount, uidWordsSeparator, uidWordsAddDigits, uidWordsDigitsCount, uidWordsMaxLength,
+  uidCount
+].forEach((el) => {
+  el.addEventListener("change", saveUserIdSettings);
 });
 
 /* ------------------------------
    INIT
 ------------------------------ */
-function restoreCrackHardwareSelection() {
-  try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_CRACK_KEY);
-    if (saved && CRACK_HARDWARE_PROFILES[saved]) {
-      crackHardwareSelect.value = saved;
-    }
-  } catch {
-    // ignore
-  }
-}
-
+restorePasswordSettings();
+restoreUserIdSettings();
 updateIcloudUIState();
 updateUserIdModeUI();
-restoreCrackHardwareSelection();
 loadWordLists();
