@@ -150,6 +150,7 @@ function normalizeWord(w) {
 
 function generateWordsId(opts) {
   if (!wordsLoaded) return null;
+  if (WORD_ADJECTIVES.length === 0 || WORD_NOUNS.length === 0) return null;
 
   const sep = opts.separator === "none" ? "" : opts.separator;
 
@@ -157,16 +158,16 @@ function generateWordsId(opts) {
     const words = [];
 
     if (opts.wordsCount === 2) {
-      words.push(
-        WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)],
-        WORD_NOUNS[randomInt(WORD_NOUNS.length)]
-      );
+      const adj = WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)];
+      const noun = WORD_NOUNS[randomInt(WORD_NOUNS.length)];
+      if (!adj || !noun) continue;
+      words.push(adj, noun);
     } else {
-      words.push(
-        WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)],
-        WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)],
-        WORD_NOUNS[randomInt(WORD_NOUNS.length)]
-      );
+      const adj1 = WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)];
+      const adj2 = WORD_ADJECTIVES[randomInt(WORD_ADJECTIVES.length)];
+      const noun = WORD_NOUNS[randomInt(WORD_NOUNS.length)];
+      if (!adj1 || !adj2 || !noun) continue;
+      words.push(adj1, adj2, noun);
     }
 
     let id = words.join(sep);
@@ -422,22 +423,34 @@ function restoreUserIdSettings() {
 /* ------------------------------
    WORD LIST LOADING
 ------------------------------ */
-async function loadWordLists() {
-  try {
-    const [a, n] = await Promise.all([
-      fetch("data/adjs.json"),
-      fetch("data/nouns.json")
-    ]);
+function loadWordLists() {
+  // Check if word data is already loaded from script tags
+  if (typeof WORD_ADJECTIVES_DATA !== "undefined" && typeof WORD_NOUNS_DATA !== "undefined") {
+    WORD_ADJECTIVES = WORD_ADJECTIVES_DATA.map(normalizeWord).filter(Boolean);
+    WORD_NOUNS = WORD_NOUNS_DATA.map(normalizeWord).filter(Boolean);
 
-    const adjs = await a.json();
-    const nouns = await n.json();
-
-    WORD_ADJECTIVES = (adjs.adjs || adjs).map(normalizeWord).filter(Boolean);
-    WORD_NOUNS = (nouns.nouns || nouns).map(normalizeWord).filter(Boolean);
+    if (WORD_ADJECTIVES.length === 0 || WORD_NOUNS.length === 0) {
+      wordsLoaded = false;
+      if (uidError) {
+        uidError.textContent = "Word lists are empty after processing";
+      }
+      console.error("Word lists are empty after processing");
+      return;
+    }
 
     wordsLoaded = true;
-  } catch (e) {
-    uidError.textContent = "Failed to load word lists.";
+    console.log(`Loaded ${WORD_ADJECTIVES.length} adjectives and ${WORD_NOUNS.length} nouns`);
+    
+    // Clear any previous error messages
+    if (uidError && uidError.textContent) {
+      uidError.textContent = "";
+    }
+  } else {
+    wordsLoaded = false;
+    if (uidError) {
+      uidError.textContent = "Word lists not loaded. Make sure data/adjs.js and data/nouns.js are included in the page.";
+    }
+    console.error("Word list data not found. Make sure data/adjs.js and data/nouns.js are loaded.");
   }
 }
 
@@ -513,6 +526,18 @@ function handleGenerateUserIds() {
   uidResults.innerHTML = "";
 
   const mode = uidMode.value;
+  
+  if (mode === "words") {
+    if (!wordsLoaded) {
+      uidError.textContent = "Word lists not loaded. Please refresh the page.";
+      return;
+    }
+    if (WORD_ADJECTIVES.length === 0 || WORD_NOUNS.length === 0) {
+      uidError.textContent = "Word lists are empty. Please check data/adjs.json and data/nouns.json files.";
+      return;
+    }
+  }
+
   const count = Number(uidCount.value);
   const results = [];
 
@@ -539,7 +564,9 @@ function handleGenerateUserIds() {
     }
 
     if (!id) {
-      uidError.textContent = "Could not generate valid IDs. Increase max length.";
+      uidError.textContent = mode === "words" 
+        ? "Could not generate valid IDs. Check max length or word list files."
+        : "Could not generate valid IDs. Increase max length.";
       return;
     }
 
@@ -703,4 +730,6 @@ restoreUserIdSettings();
 updateIcloudUIState();
 updateUserIdModeUI();
 restoreCrackHardwareSelection();
+
+// Load word lists - they should be loaded via script tags before this script runs
 loadWordLists();
