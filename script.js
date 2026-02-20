@@ -199,6 +199,17 @@ function calculateEntropyBits(length, poolSize) {
 /* ------------------------------
    CRACK-TIME ESTIMATION
 ------------------------------ */
+/**
+ * Round to 1-2 significant digits
+ * Examples: 3.456 -> 3.5, 18.7 -> 19, 123.4 -> 120
+ */
+function roundToSignificantDigits(value, digits = 2) {
+  if (value === 0) return 0;
+  const magnitude = Math.floor(Math.log10(Math.abs(value)));
+  const factor = Math.pow(10, digits - 1 - magnitude);
+  return Math.round(value * factor) / factor;
+}
+
 function formatCrackTime(seconds) {
   if (seconds < 1) return "< 1 second";
 
@@ -208,19 +219,50 @@ function formatCrackTime(seconds) {
   const week = 7 * day;
   const year = 365 * day;
 
-  if (seconds < minute) return `~${Math.round(seconds)} seconds`;
-  if (seconds < hour) return `~${Math.round(seconds / minute)} minutes`;
-  if (seconds < day) return `~${Math.round(seconds / hour)} hours`;
-  if (seconds < week) return `~${Math.round(seconds / day)} days`;
-  if (seconds < year) return `~${Math.round(seconds / week)} weeks`;
+  if (seconds < minute) {
+    const rounded = Math.round(seconds);
+    return `~${rounded} second${rounded !== 1 ? 's' : ''}`;
+  }
+  if (seconds < hour) {
+    const rounded = Math.round(seconds / minute);
+    return `~${rounded} minute${rounded !== 1 ? 's' : ''}`;
+  }
+  if (seconds < day) {
+    const rounded = Math.round(seconds / hour);
+    return `~${rounded} hour${rounded !== 1 ? 's' : ''}`;
+  }
+  if (seconds < week) {
+    const rounded = Math.round(seconds / day);
+    return `~${rounded} day${rounded !== 1 ? 's' : ''}`;
+  }
+  if (seconds < year) {
+    const rounded = Math.round(seconds / week);
+    return `~${rounded} week${rounded !== 1 ? 's' : ''}`;
+  }
 
   const years = seconds / year;
   if (years < 1e6) {
-    const rounded = years < 10 ? years.toFixed(1) : Math.round(years);
-    return `~${rounded} years`;
+    // For years: use 1 decimal if < 10, otherwise round to integer
+    let rounded;
+    let roundedNum;
+    if (years < 10) {
+      roundedNum = roundToSignificantDigits(years, 2);
+      rounded = roundedNum.toFixed(1).replace(/\.0$/, '');
+    } else {
+      roundedNum = Math.round(years);
+      rounded = roundedNum.toString();
+    }
+    return `~${rounded} year${roundedNum !== 1 ? 's' : ''}`;
   }
 
-  return "> 10 million years";
+  // Millions of years: round to 1-2 significant digits
+  const millions = years / 1e6;
+  const rounded = roundToSignificantDigits(millions, 2);
+  // Format without scientific notation
+  const formatted = rounded >= 10 
+    ? Math.round(rounded).toString()
+    : rounded.toFixed(1).replace(/\.0$/, '');
+  return `~${formatted} million years`;
 }
 
 /**
