@@ -21,6 +21,10 @@ This project includes real‑time validation, entropy‑based strength calculati
 - Custom symbol input with validation
 - iCloud‑style preset mode (Apple‑like password format)
 - Password strength meter (entropy‑based)
+- **Password crack-time estimation** (offline attack, real hardware)
+  - Multiple hardware profiles (CPU, RTX 4090, datacenter)
+  - Shows entropy, keyspace, and estimated crack time
+  - Educational tool to understand password security
 - Copy‑to‑clipboard button
 - Clear button to reset the UI
 - Real‑time validation and disabled Generate button when inputs are invalid
@@ -38,7 +42,35 @@ entropy = length × log2(poolSize)
 Strength levels:
 - **Weak**: under 45 bits  
 - **Medium**: 45–70 bits  
-- **Strong**: 70+ bits  
+- **Strong**: 70+ bits
+
+## ⏱️ Password Crack Time Estimation
+
+The generator includes realistic offline password crack-time estimation based on:
+
+- **Entropy (H)**: Calculated from password length and character pool size
+- **Keyspace (K)**: Total possible passwords = 2^H
+- **Expected crack time (T)**: Average time to crack = 0.5 × K / R
+  - Where R = guesses per second (hardware-dependent)
+
+### Hardware Profiles
+
+You can select different attacker hardware profiles:
+- **High-end CPU**: ~1×10⁹ guesses/sec
+- **RTX 4090**: ~5×10¹¹ guesses/sec
+- **8× RTX 4090 rig**: ~4×10¹² guesses/sec
+- **Datacenter attacker**: ~1×10¹⁴ guesses/sec
+
+### Assumptions (Worst-Case Scenario)
+
+The crack-time estimate assumes:
+- ✅ **Offline attack**: Attacker already has the password hash
+- ✅ **Fast hashing**: Using fast algorithms (MD5, NTLM, SHA-1)
+- ✅ **No rate limiting**: Unlimited guesses per second
+- ✅ **No lockouts**: No account protection mechanisms
+- ✅ **Modern hardware**: High-end CPU/GPU as selected
+
+**Important Note**: This is *not* online login guessing. Real systems using slow hashing (bcrypt, Argon2id, PBKDF2) can increase attack time by orders of magnitude. This estimate is educational and demonstrates why stronger passwords matter.  
 
 ---
 

@@ -223,9 +223,28 @@ function formatCrackTime(seconds) {
   return "> 10 million years";
 }
 
+/**
+ * Estimate password crack time in seconds (offline attack, worst-case)
+ * 
+ * Formula:
+ *   Keyspace (K) = 2^H, where H = entropy in bits
+ *   Expected crack time (T) = 0.5 × K / R
+ *   where R = guesses per second (hardware-dependent)
+ * 
+ * The 0.5 factor accounts for average case (50% of keyspace searched on average)
+ * 
+ * @param {number} entropyBits - Password entropy in bits (H)
+ * @param {number} guessesPerSecond - Attacker's guess rate (R)
+ * @returns {number} Estimated crack time in seconds
+ */
 function estimateCrackTimeSeconds(entropyBits, guessesPerSecond) {
+  // Keyspace: K = 2^H
   const keyspace = Math.pow(2, entropyBits);
+  
+  // Expected guesses (average case): 0.5 × K
   const expectedGuesses = 0.5 * keyspace;
+  
+  // Crack time: T = expectedGuesses / R
   return expectedGuesses / guessesPerSecond;
 }
 
@@ -268,6 +287,7 @@ const copyBtn = document.getElementById("copy");
 /* Crack-time DOM */
 const crackTimeContainer = document.getElementById("crackTimeContainer");
 const crackHardwareSelect = document.getElementById("crackHardware");
+const crackTimeEntropy = document.getElementById("crackTimeEntropy");
 const crackTimeValue = document.getElementById("crackTimeValue");
 const crackTimeWarning = document.getElementById("crackTimeWarning");
 
@@ -326,16 +346,32 @@ function updateCrackTimeUI(entropyBits) {
   const profileKey = crackHardwareSelect.value || "cpu";
   const guessesPerSecond = CRACK_HARDWARE_PROFILES[profileKey] || CRACK_HARDWARE_PROFILES.cpu;
 
+  // Calculate keyspace: K = 2^H
+  const keyspace = Math.pow(2, entropyBits);
+  
+  // Calculate expected crack time: T = 0.5 * K / R
   const seconds = estimateCrackTimeSeconds(entropyBits, guessesPerSecond);
   const formatted = formatCrackTime(seconds);
 
+  // Display entropy and keyspace info
+  const entropyDisplay = document.getElementById("crackTimeEntropy");
+  if (entropyDisplay) {
+    const keyspaceFormatted = keyspace > 1e15 
+      ? keyspace.toExponential(2) 
+      : keyspace.toLocaleString();
+    entropyDisplay.textContent = `Entropy: ${entropyBits.toFixed(1)} bits | Keyspace: ${keyspaceFormatted} possible passwords`;
+  }
+
   crackTimeContainer.style.display = "";
-  crackTimeValue.textContent = `≈ ${formatted}`;
+  crackTimeValue.textContent = `Estimated crack time: ≈ ${formatted}`;
   crackTimeWarning.textContent = "";
 
   if (entropyBits < 20) {
     crackTimeWarning.textContent =
-      "This password is extremely weak and can be cracked almost instantly in an offline attack.";
+      "⚠️ This password is extremely weak and can be cracked almost instantly in an offline attack.";
+  } else if (entropyBits < 45) {
+    crackTimeWarning.textContent =
+      "⚠️ This password is weak. Consider increasing length or adding more character types.";
   }
 
   try {
