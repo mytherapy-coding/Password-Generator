@@ -55,10 +55,10 @@
         <label style="margin-top:8px;">
           Attacker hardware (offline, fast hash):
           <select id="crackHardware">
-            <option value="cpu">High-end CPU (~1×10⁹ guesses/sec)</option>
-            <option value="rtx4090">RTX 4090 (~5×10¹¹ guesses/sec)</option>
-            <option value="rig8x4090">8× RTX 4090 rig (~4×10¹² guesses/sec)</option>
-            <option value="datacenter">Datacenter attacker (~1×10¹⁴ guesses/sec)</option>
+            <option value="cpu">High-end CPU (1×10⁹ guesses/sec) — Modern multi-core CPU</option>
+            <option value="rtx4090">RTX 4090 (single GPU) (5×10¹¹ guesses/sec) — Fast hash, real-world order of magnitude</option>
+            <option value="rig8x4090">8× RTX 4090 rig (4×10¹² guesses/sec) — Small cracking rig</option>
+            <option value="datacenter">Datacenter attacker (1×10¹⁴ guesses/sec) — Large-scale / nation-state level</option>
           </select>
         </label>
         <div id="crackTimeValue" class="info" style="margin-top:8px; font-weight:bold; font-size:1.1em;"></div>
