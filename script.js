@@ -770,7 +770,8 @@ function serializePasswordSettingsToURL() {
   params.set("digits", digitsCheckbox.checked ? "1" : "0");
   params.set("symbols", symbolsCheckbox.checked ? "1" : "0");
   if (symbolsCheckbox.checked && customSymbolsInput.value) {
-    params.set("customSymbols", encodeURIComponent(customSymbolsInput.value));
+    // URLSearchParams.set() automatically handles URL encoding (e.g., !@#$&=)
+    params.set("customSymbols", customSymbolsInput.value);
   }
   params.set("icloudPreset", icloudPresetCheckbox.checked ? "1" : "0"); // mode
   params.set("crackHardware", crackHardwareSelect.value);
@@ -808,7 +809,8 @@ function serializeUserIdSettingsToURL() {
     params.set("uidAddDigits", uidAddDigits.checked ? "1" : "0");
     params.set("uidDigitsCount", uidDigitsCount.value); // digits count
     params.set("uidAddSuffix", uidAddSuffix.checked ? "1" : "0");
-    params.set("uidSuffix", encodeURIComponent(uidSuffix.value)); // suffix (if any)
+    // URLSearchParams.set() automatically handles URL encoding (e.g., !@#$&=)
+    params.set("uidSuffix", uidSuffix.value); // suffix (if any)
     params.set("uidMaxLength", uidMaxLength.value); // max length
   } else {
     params.set("uidWordsCount", uidWordsCount.value); // words count
@@ -857,7 +859,8 @@ function restoreSettingsFromURL() {
       symbolsCheckbox.checked = params.get("symbols") === "1";
     }
     if (params.has("customSymbols")) {
-      customSymbolsInput.value = decodeURIComponent(params.get("customSymbols"));
+      // URLSearchParams.get() automatically decodes URL-encoded values
+      customSymbolsInput.value = params.get("customSymbols");
     }
     if (params.has("icloudPreset")) {
       icloudPresetCheckbox.checked = params.get("icloudPreset") === "1";
@@ -911,7 +914,8 @@ function restoreSettingsFromURL() {
         uidAddSuffix.checked = params.get("uidAddSuffix") === "1";
       }
       if (params.has("uidSuffix")) {
-        uidSuffix.value = decodeURIComponent(params.get("uidSuffix"));
+        // URLSearchParams.get() automatically decodes URL-encoded values
+        uidSuffix.value = params.get("uidSuffix");
       }
       if (params.has("uidMaxLength")) {
         const maxLength = parseInt(params.get("uidMaxLength"), 10);
@@ -968,18 +972,21 @@ function restoreSettingsFromURL() {
 
 /**
  * Copy share link to clipboard
+ * Uses URL API for safe encoding of special characters
  */
 async function copyShareLink(serializeFunction) {
-  const params = serializeFunction();
-  const url = window.location.origin + window.location.pathname + "?" + params;
+  // serializeFunction() returns URLSearchParams.toString() which is already properly encoded
+  // Use URL API to construct the final URL safely
+  const url = new URL(window.location.href);
+  url.search = serializeFunction(); // Already encoded query string from URLSearchParams.toString()
   
   try {
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(url.href);
     return true;
   } catch {
     // Fallback: select and copy
     const textarea = document.createElement("textarea");
-    textarea.value = url;
+    textarea.value = url.href;
     textarea.style.position = "fixed";
     textarea.style.opacity = "0";
     document.body.appendChild(textarea);
