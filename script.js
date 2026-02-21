@@ -630,7 +630,7 @@ function restorePasswordSettings() {
     easyWriteLength.value = s.easyWriteLength ?? "16";
     easySaySyllables.value = s.easySaySyllables ?? "5";
     easySayAddDigit.checked = s.easySayAddDigit ?? true;
-    updatePasswordModeUI();
+    // Don't call updatePasswordModeUI here - it will be called after all settings are restored
   } catch (_) {}
 }
 
@@ -1338,14 +1338,16 @@ const urlParamsRestored = restoreSettingsFromURL();
 if (!urlParamsRestored) {
   restorePasswordSettings();
   restoreUserIdSettings();
+  restoreCrackHardwareSelection();
+  // Update UI after all settings are restored
   updatePasswordModeUI();
   updateUserIdModeUI();
-  restoreCrackHardwareSelection();
 } else {
   // URL params were restored, but still restore hardware selection from localStorage if not in URL
   if (!new URLSearchParams(window.location.search).has("crackHardware")) {
     restoreCrackHardwareSelection();
   }
+  // updatePasswordModeUI is already called in restoreSettingsFromURL
 }
 
 // Recompute crack time after restoring settings (if password exists)
