@@ -400,6 +400,60 @@ function updateCrackTimeUI(entropyBits) {
   }
 }
 
+/**
+ * Update crack time based on current settings (live update)
+ * Only updates if a password is already generated
+ */
+function updateCrackTimeFromSettings() {
+  // Only update if there's already a password
+  if (!passwordInput.value) {
+    crackTimeContainer.style.display = "none";
+    return;
+  }
+
+  // iCloud preset: fixed entropy
+  if (icloudPresetCheckbox.checked) {
+    updateCrackTimeUI(71);
+    return;
+  }
+
+  // Validate length
+  const length = Number(lengthInput.value);
+  if (length < 4 || length > 64) {
+    crackTimeContainer.style.display = "none";
+    return;
+  }
+
+  // Validate symbols if enabled
+  let symbols = "";
+  if (symbolsCheckbox.checked) {
+    const val = validateSymbolsInput(customSymbolsInput.value);
+    if (!val.ok) {
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+    symbols = val.symbols;
+  }
+
+  // Get charset
+  const charset = getCharset({
+    useLower: lowercaseCheckbox.checked,
+    useUpper: uppercaseCheckbox.checked,
+    useDigits: digitsCheckbox.checked,
+    useSymbols: symbolsCheckbox.checked,
+    symbols
+  });
+
+  if (!charset.ok) {
+    crackTimeContainer.style.display = "none";
+    return;
+  }
+
+  // Calculate entropy and update
+  const bits = calculateEntropyBits(length, charset.pool.length);
+  updateCrackTimeUI(bits);
+}
+
 /* ------------------------------
    PASSWORD PERSISTENCE
 ------------------------------ */
@@ -690,16 +744,22 @@ copyBtn.addEventListener("click", async () => {
 
 [
   lengthInput, lowercaseCheckbox, uppercaseCheckbox, digitsCheckbox,
-  symbolsCheckbox, customSymbolsInput
+  symbolsCheckbox
 ].forEach((el) => {
-  el.addEventListener("change", savePasswordSettings);
+  el.addEventListener("change", () => {
+    savePasswordSettings();
+    updateCrackTimeFromSettings();
+  });
 });
-customSymbolsInput.addEventListener("input", savePasswordSettings);
+customSymbolsInput.addEventListener("input", () => {
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
 
 icloudPresetCheckbox.addEventListener("change", () => {
   updateIcloudUIState();
   savePasswordSettings();
-  crackTimeContainer.style.display = "none";
+  updateCrackTimeFromSettings();
 });
 
 uidMode.addEventListener("change", () => {
@@ -717,49 +777,12 @@ uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
 });
 
 crackHardwareSelect.addEventListener("change", () => {
-  // Recompute crack time for current password if any
-  const pwd = passwordInput.value;
-  if (!pwd) {
-    crackTimeContainer.style.display = "none";
-    try {
-      localStorage.setItem(LOCAL_STORAGE_CRACK_KEY, crackHardwareSelect.value);
-    } catch {
-      // ignore
-    }
-    return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_CRACK_KEY, crackHardwareSelect.value);
+  } catch {
+    // ignore
   }
-
-  if (icloudPresetCheckbox.checked) {
-    updateCrackTimeUI(71);
-    return;
-  }
-
-  const length = Number(lengthInput.value);
-  let symbols = "";
-  if (symbolsCheckbox.checked) {
-    const val = validateSymbolsInput(customSymbolsInput.value);
-    if (!val.ok) {
-      crackTimeContainer.style.display = "none";
-      return;
-    }
-    symbols = val.symbols;
-  }
-
-  const charset = getCharset({
-    useLower: lowercaseCheckbox.checked,
-    useUpper: uppercaseCheckbox.checked,
-    useDigits: digitsCheckbox.checked,
-    useSymbols: symbolsCheckbox.checked,
-    symbols
-  });
-
-  if (!charset.ok) {
-    crackTimeContainer.style.display = "none";
-    return;
-  }
-
-  const bits = calculateEntropyBits(length, charset.pool.length);
-  updateCrackTimeUI(bits);
+  updateCrackTimeFromSettings();
 });
 
 /* ------------------------------
