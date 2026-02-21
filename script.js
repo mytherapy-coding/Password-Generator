@@ -257,6 +257,12 @@ function formatCrackTime(seconds) {
 
   // Millions of years: round to 1-2 significant digits
   const millions = years / 1e6;
+  
+  // Cap at > 10 million years for very large values
+  if (millions > 10) {
+    return "> 10 million years";
+  }
+  
   const rounded = roundToSignificantDigits(millions, 2);
   // Format without scientific notation
   const formatted = rounded >= 10 
@@ -330,6 +336,7 @@ const copyBtn = document.getElementById("copy");
 const crackTimeContainer = document.getElementById("crackTimeContainer");
 const crackHardwareSelect = document.getElementById("crackHardware");
 const crackTimeValue = document.getElementById("crackTimeValue");
+const crackTimeWarning = document.getElementById("crackTimeWarning");
 
 const uidMode = document.getElementById("uidMode");
 const uidCvcControls = document.getElementById("uidCvcControls");
@@ -391,7 +398,16 @@ function updateCrackTimeUI(entropyBits) {
   const formatted = formatCrackTime(seconds);
 
   crackTimeContainer.style.display = "";
-  crackTimeValue.textContent = `≈ ${formatted}`;
+  crackTimeValue.textContent = formatted === "< 1 second" ? formatted : `≈ ${formatted}`;
+
+  // Show warning if entropy < 20 bits
+  if (entropyBits < 20) {
+    crackTimeWarning.textContent = "This password is extremely weak and can be cracked almost instantly.";
+    crackTimeWarning.style.display = "";
+  } else {
+    crackTimeWarning.style.display = "none";
+    crackTimeWarning.textContent = "";
+  }
 
   try {
     localStorage.setItem(LOCAL_STORAGE_CRACK_KEY, profileKey);
