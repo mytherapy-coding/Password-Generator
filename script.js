@@ -805,5 +805,11 @@ updateIcloudUIState();
 updateUserIdModeUI();
 restoreCrackHardwareSelection();
 
+// Recompute crack time after restoring settings (if password exists)
+// Use setTimeout to ensure DOM is fully ready
+setTimeout(() => {
+  updateCrackTimeFromSettings();
+}, 0);
+
 // Load word lists - they should be loaded via script tags before this script runs
 loadWordLists();
