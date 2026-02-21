@@ -925,155 +925,187 @@ resetUserIdSettingsBtn.addEventListener("click", () => {
    URL PARAMETER HANDLING (SHARE LINK)
 ------------------------------ */
 /**
- * Serialize current password settings to URL parameters
- * 
- * SHARED (settings only):
- * - mode (icloudPreset)
- * - length
- * - lower / upper / digits / symbols toggles
- * - custom symbols set (if any)
- * - hardware profile for crack-time estimation
- * 
- * NOT SHARED (security):
- * - the generated password (NEVER included)
+ * Build share URL for password generator with short parameter keys
+ * Uses URLSearchParams for safe encoding of special characters
  */
-function serializePasswordSettingsToURL() {
-  const params = new URLSearchParams();
+function buildPasswordShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = ""; // Clear old params
+  const p = url.searchParams;
   
-  // Password settings
-  params.set("tab", "password");
-  params.set("passwordMode", passwordMode.value); // mode
-  params.set("length", lengthInput.value);
-  params.set("lowercase", lowercaseCheckbox.checked ? "1" : "0");
-  params.set("uppercase", uppercaseCheckbox.checked ? "1" : "0");
-  params.set("digits", digitsCheckbox.checked ? "1" : "0");
-  params.set("symbols", symbolsCheckbox.checked ? "1" : "0");
-  if (symbolsCheckbox.checked && customSymbolsInput.value) {
-    // URLSearchParams.set() automatically handles URL encoding (e.g., !@#$&=)
-    params.set("customSymbols", customSymbolsInput.value);
+  p.set("gen", "pwd");
+  
+  // Determine mode
+  let mode = passwordMode.value;
+  if (icloudPresetCheckbox.checked) {
+    mode = "icloud";
+  } else if (mode === "easyWrite") {
+    mode = "easywrite";
+  } else if (mode === "easySay") {
+    mode = "easysay";
   }
-  params.set("icloudPreset", icloudPresetCheckbox.checked ? "1" : "0");
-  params.set("easyWriteLength", easyWriteLength.value);
-  params.set("easySaySyllables", easySaySyllables.value);
-  params.set("easySayAddDigit", easySayAddDigit.checked ? "1" : "0");
-  params.set("crackHardware", crackHardwareSelect.value);
-  params.set("autoGenerate", "1"); // Optionally auto-generate on load
+  p.set("mode", mode);
+  
+  // Length (mode-specific)
+  if (mode === "easywrite") {
+    p.set("len", String(easyWriteLength.value));
+  } else if (mode === "easysay") {
+    // Syllable count determines length, but we store syllables
+    p.set("sy", String(easySaySyllables.value));
+    p.set("dig", easySayAddDigit.checked ? "1" : "0");
+  } else if (mode !== "icloud") {
+    // Strong mode
+    p.set("len", String(lengthInput.value));
+    p.set("low", lowercaseCheckbox.checked ? "1" : "0");
+    p.set("up", uppercaseCheckbox.checked ? "1" : "0");
+    p.set("dig", digitsCheckbox.checked ? "1" : "0");
+    p.set("sym", symbolsCheckbox.checked ? "1" : "0");
+    
+    // Custom symbols set (URLSearchParams encodes safely)
+    if (symbolsCheckbox.checked && customSymbolsInput.value) {
+      const symset = customSymbolsInput.value.trim();
+      if (symset.length > 0 && symset.length <= 50) { // Limit length
+        p.set("symset", symset);
+      }
+    }
+  }
+  
+  // Hardware profile (map to short keys)
+  const hwMap = {
+    "cpu": "cpu",
+    "rtx4090": "4090",
+    "rig8x4090": "rig8",
+    "datacenter": "dc"
+  };
+  const hw = crackHardwareSelect.value;
+  if (hwMap[hw]) {
+    p.set("hw", hwMap[hw]);
+  }
+  
+  p.set("auto", "1"); // Optional auto-generate
   
   // SECURITY: passwordInput.value is NEVER included in URL parameters
   
-  return params.toString();
+  return url.toString();
 }
 
 /**
- * Serialize current User ID settings to URL parameters
- * 
- * SHARED (settings only):
- * - mode (CVC / Words)
- * - syllables or words count
- * - separator
- * - digits count
- * - max length
- * - number of suggestions
- * - suffix (if any)
- * 
- * NOT SHARED (security):
- * - the list of generated UserID suggestions (NEVER included)
+ * Build share URL for User ID generator with short parameter keys
+ * Uses URLSearchParams for safe encoding of special characters
  */
-function serializeUserIdSettingsToURL() {
-  const params = new URLSearchParams();
+function buildUserIdShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = ""; // Clear old params
+  const p = url.searchParams;
   
-  // User ID settings
-  params.set("tab", "userId");
-  params.set("uidMode", uidMode.value); // mode (CVC / Words)
+  p.set("gen", "uid");
+  p.set("mode", uidMode.value); // "cvc" or "words"
+  p.set("cnt", String(uidCount.value));
   
   if (uidMode.value === "cvc") {
-    params.set("uidSyllables", uidSyllables.value); // syllables count
-    params.set("uidAddDigits", uidAddDigits.checked ? "1" : "0");
-    params.set("uidDigitsCount", uidDigitsCount.value); // digits count
-    params.set("uidAddSuffix", uidAddSuffix.checked ? "1" : "0");
-    // URLSearchParams.set() automatically handles URL encoding (e.g., !@#$&=)
-    params.set("uidSuffix", uidSuffix.value); // suffix (if any)
-    params.set("uidMaxLength", uidMaxLength.value); // max length
+    p.set("sy", String(uidSyllables.value)); // syllables: 2 or 3
+    p.set("max", String(uidMaxLength.value));
+    p.set("dig", uidAddDigits.checked ? String(uidDigitsCount.value) : "0");
+    if (uidAddSuffix.checked && uidSuffix.value) {
+      // URLSearchParams encodes safely
+      p.set("suf", uidSuffix.value);
+    }
   } else {
-    params.set("uidWordsCount", uidWordsCount.value); // words count
-    params.set("uidWordsSeparator", uidWordsSeparator.value); // separator
-    params.set("uidWordsAddDigits", uidWordsAddDigits.checked ? "1" : "0");
-    params.set("uidWordsDigitsCount", uidWordsDigitsCount.value); // digits count
-    params.set("uidWordsMaxLength", uidWordsMaxLength.value); // max length
+    // words mode
+    p.set("wc", String(uidWordsCount.value)); // words count: 2 or 3
+    p.set("sep", uidWordsSeparator.value); // "_", ".", "-", "none"
+    p.set("max", String(uidWordsMaxLength.value));
+    p.set("dig", uidWordsAddDigits.checked ? String(uidWordsDigitsCount.value) : "0");
   }
   
-  params.set("uidCount", uidCount.value); // number of suggestions
-  params.set("autoGenerate", "1"); // Optionally auto-generate on load
+  p.set("auto", "1"); // Optional auto-generate
   
   // SECURITY: uidResults (generated UserID list) is NEVER included in URL parameters
   
-  return params.toString();
+  return url.toString();
 }
 
 /**
- * Parse URL parameters and restore settings
+ * Helper: Get boolean from URL param (1/0)
+ */
+function getBool(p, key, defaultVal = false) {
+  const v = p.get(key);
+  if (v === "1") return true;
+  if (v === "0") return false;
+  return defaultVal;
+}
+
+/**
+ * Helper: Get integer from URL param with validation
+ */
+function getInt(p, key, min, max, defaultVal) {
+  const n = Number(p.get(key));
+  if (!Number.isFinite(n)) return defaultVal;
+  if (n < min || n > max) return defaultVal;
+  return Math.floor(n);
+}
+
+/**
+ * Parse URL parameters and restore settings (with validation)
+ * Uses short parameter keys: gen, mode, len, low, up, dig, sym, symset, hw, auto
  */
 function restoreSettingsFromURL() {
   const params = new URLSearchParams(window.location.search);
   
   if (params.toString() === "") return false; // No URL parameters
   
-  const tab = params.get("tab");
-  if (tab === "password") {
-    // Restore password settings
-    if (params.has("passwordMode")) {
-      const mode = params.get("passwordMode");
-      if (mode === "strong" || mode === "easyWrite" || mode === "easySay") {
-        passwordMode.value = mode;
+  const gen = params.get("gen");
+  if (!gen || (gen !== "pwd" && gen !== "uid")) return false;
+  
+  if (gen === "pwd") {
+    // Restore password settings using short parameter keys
+    const mode = params.get("mode");
+    if (mode) {
+      if (mode === "icloud") {
+        icloudPresetCheckbox.checked = true;
+      } else if (mode === "easywrite") {
+        passwordMode.value = "easyWrite";
+      } else if (mode === "easysay") {
+        passwordMode.value = "easySay";
+      } else if (mode === "strong") {
+        passwordMode.value = "strong";
       }
     }
     
-    if (params.has("length")) {
-      const length = parseInt(params.get("length"), 10);
-      if (length >= 4 && length <= 64) {
-        lengthInput.value = length;
+    // Mode-specific settings
+    if (mode === "easywrite") {
+      const len = getInt(params, "len", 8, 64, 16);
+      easyWriteLength.value = len;
+    } else if (mode === "easysay") {
+      const sy = getInt(params, "sy", 4, 6, 5);
+      easySaySyllables.value = String(sy);
+      easySayAddDigit.checked = getBool(params, "dig", true);
+    } else if (mode !== "icloud") {
+      // Strong mode
+      const len = getInt(params, "len", 4, 64, 16);
+      lengthInput.value = len;
+      lowercaseCheckbox.checked = getBool(params, "low", true);
+      uppercaseCheckbox.checked = getBool(params, "up", true);
+      digitsCheckbox.checked = getBool(params, "dig", true);
+      symbolsCheckbox.checked = getBool(params, "sym", false);
+      
+      // Custom symbols set (validate length)
+      const symset = params.get("symset");
+      if (symset != null && symset.length > 0 && symset.length <= 50) {
+        customSymbolsInput.value = symset; // Already decoded by URLSearchParams
       }
     }
     
-    if (params.has("lowercase")) {
-      lowercaseCheckbox.checked = params.get("lowercase") === "1";
-    }
-    if (params.has("uppercase")) {
-      uppercaseCheckbox.checked = params.get("uppercase") === "1";
-    }
-    if (params.has("digits")) {
-      digitsCheckbox.checked = params.get("digits") === "1";
-    }
-    if (params.has("symbols")) {
-      symbolsCheckbox.checked = params.get("symbols") === "1";
-    }
-    if (params.has("customSymbols")) {
-      // URLSearchParams.get() automatically decodes URL-encoded values
-      customSymbolsInput.value = params.get("customSymbols");
-    }
-    if (params.has("icloudPreset")) {
-      icloudPresetCheckbox.checked = params.get("icloudPreset") === "1";
-    }
-    if (params.has("easyWriteLength")) {
-      const length = parseInt(params.get("easyWriteLength"), 10);
-      if (length >= 8 && length <= 64) {
-        easyWriteLength.value = length;
-      }
-    }
-    if (params.has("easySaySyllables")) {
-      const syllables = params.get("easySaySyllables");
-      if (syllables === "4" || syllables === "5" || syllables === "6") {
-        easySaySyllables.value = syllables;
-      }
-    }
-    if (params.has("easySayAddDigit")) {
-      easySayAddDigit.checked = params.get("easySayAddDigit") === "1";
-    }
-    if (params.has("crackHardware")) {
-      const hardware = params.get("crackHardware");
-      if (CRACK_HARDWARE_PROFILES[hardware]) {
-        crackHardwareSelect.value = hardware;
-      }
+    // Hardware profile (map from short keys)
+    const hwMap = {
+      "cpu": "cpu",
+      "4090": "rtx4090",
+      "rig8": "rig8x4090",
+      "dc": "datacenter"
+    };
+    const hw = params.get("hw");
+    if (hw && hwMap[hw]) {
+      crackHardwareSelect.value = hwMap[hw];
     }
     
     updatePasswordModeUI();
@@ -1085,73 +1117,62 @@ function restoreSettingsFromURL() {
     document.getElementById("passwordTab").classList.add("active");
     
     // Auto-generate if requested
-    if (params.get("autoGenerate") === "1") {
+    if (params.get("auto") === "1") {
       setTimeout(() => {
         handleGeneratePassword();
       }, 100);
     }
     
     return true;
-  } else if (tab === "userId") {
-    // Restore User ID settings
-    if (params.has("uidMode")) {
-      const mode = params.get("uidMode");
-      if (mode === "cvc" || mode === "words") {
-        uidMode.value = mode;
-      }
+  } else if (gen === "uid") {
+    // Restore User ID settings using short parameter keys
+    const mode = params.get("mode");
+    if (mode && (mode === "cvc" || mode === "words")) {
+      uidMode.value = mode;
     }
     
     // Update UI mode first to show/hide correct controls
     updateUserIdModeUI();
     
+    // Common settings
+    const cnt = getInt(params, "cnt", 5, 50, 10);
+    uidCount.value = String(cnt);
+    
     if (uidMode.value === "cvc") {
-      if (params.has("uidSyllables")) {
-        uidSyllables.value = params.get("uidSyllables");
+      const sy = getInt(params, "sy", 2, 3, 2);
+      uidSyllables.value = String(sy);
+      const max = getInt(params, "max", 6, 24, 15);
+      uidMaxLength.value = max;
+      const dig = getInt(params, "dig", 0, 3, 0);
+      if (dig > 0) {
+        uidAddDigits.checked = true;
+        uidDigitsCount.value = String(dig);
+      } else {
+        uidAddDigits.checked = false;
       }
-      if (params.has("uidAddDigits")) {
-        uidAddDigits.checked = params.get("uidAddDigits") === "1";
-      }
-      if (params.has("uidDigitsCount")) {
-        uidDigitsCount.value = params.get("uidDigitsCount");
-      }
-      if (params.has("uidAddSuffix")) {
-        uidAddSuffix.checked = params.get("uidAddSuffix") === "1";
-      }
-      if (params.has("uidSuffix")) {
-        // URLSearchParams.get() automatically decodes URL-encoded values
-        uidSuffix.value = params.get("uidSuffix");
-      }
-      if (params.has("uidMaxLength")) {
-        const maxLength = parseInt(params.get("uidMaxLength"), 10);
-        if (maxLength >= 6 && maxLength <= 24) {
-          uidMaxLength.value = maxLength;
-        }
+      const suf = params.get("suf");
+      if (suf != null && suf.length > 0) {
+        uidAddSuffix.checked = true;
+        uidSuffix.value = suf; // Already decoded by URLSearchParams
+      } else {
+        uidAddSuffix.checked = false;
       }
     } else {
-      if (params.has("uidWordsCount")) {
-        uidWordsCount.value = params.get("uidWordsCount");
+      // words mode
+      const wc = getInt(params, "wc", 2, 3, 2);
+      uidWordsCount.value = String(wc);
+      const sep = params.get("sep");
+      if (sep && ["_", ".", "-", "none"].includes(sep)) {
+        uidWordsSeparator.value = sep;
       }
-      if (params.has("uidWordsSeparator")) {
-        uidWordsSeparator.value = params.get("uidWordsSeparator");
-      }
-      if (params.has("uidWordsAddDigits")) {
-        uidWordsAddDigits.checked = params.get("uidWordsAddDigits") === "1";
-      }
-      if (params.has("uidWordsDigitsCount")) {
-        uidWordsDigitsCount.value = params.get("uidWordsDigitsCount");
-      }
-      if (params.has("uidWordsMaxLength")) {
-        const maxLength = parseInt(params.get("uidWordsMaxLength"), 10);
-        if (maxLength >= 8 && maxLength <= 30) {
-          uidWordsMaxLength.value = maxLength;
-        }
-      }
-    }
-    
-    if (params.has("uidCount")) {
-      const count = params.get("uidCount");
-      if (count === "5" || count === "10" || count === "20") {
-        uidCount.value = count;
+      const max = getInt(params, "max", 8, 30, 20);
+      uidWordsMaxLength.value = max;
+      const dig = getInt(params, "dig", 0, 3, 0);
+      if (dig > 0) {
+        uidWordsAddDigits.checked = true;
+        uidWordsDigitsCount.value = String(dig);
+      } else {
+        uidWordsAddDigits.checked = false;
       }
     }
     
@@ -1162,7 +1183,7 @@ function restoreSettingsFromURL() {
     document.getElementById("userIdTab").classList.add("active");
     
     // Auto-generate if requested
-    if (params.get("autoGenerate") === "1") {
+    if (params.get("auto") === "1") {
       setTimeout(() => {
         handleGenerateUserIds();
       }, 100);
@@ -1175,22 +1196,52 @@ function restoreSettingsFromURL() {
 }
 
 /**
+ * Show toast notification
+ */
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  
+  toast.textContent = message;
+  toast.style.display = "block";
+  
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 2000);
+}
+
+/**
+ * Clean URL parameters (nice UX)
+ */
+function clearUrlParams() {
+  const url = new URL(window.location.href);
+  url.search = "";
+  history.replaceState({}, "", url.toString());
+}
+
+/**
  * Copy share link to clipboard
  * Uses URL API for safe encoding of special characters
  */
-async function copyShareLink(serializeFunction) {
-  // serializeFunction() returns URLSearchParams.toString() which is already properly encoded
-  // Use URL API to construct the final URL safely
-  const url = new URL(window.location.href);
-  url.search = serializeFunction(); // Already encoded query string from URLSearchParams.toString()
+async function copyShareUrl(genType) {
+  let urlString;
+  
+  if (genType === "pwd") {
+    urlString = buildPasswordShareUrl();
+  } else if (genType === "uid") {
+    urlString = buildUserIdShareUrl();
+  } else {
+    return false;
+  }
   
   try {
-    await navigator.clipboard.writeText(url.href);
+    await navigator.clipboard.writeText(urlString);
+    showToast("Share link copied!");
     return true;
   } catch {
     // Fallback: select and copy
     const textarea = document.createElement("textarea");
-    textarea.value = url.href;
+    textarea.value = urlString;
     textarea.style.position = "fixed";
     textarea.style.opacity = "0";
     document.body.appendChild(textarea);
@@ -1198,9 +1249,11 @@ async function copyShareLink(serializeFunction) {
     try {
       document.execCommand("copy");
       document.body.removeChild(textarea);
+      showToast("Share link copied!");
       return true;
     } catch {
       document.body.removeChild(textarea);
+      showToast("Failed to copy link");
       return false;
     }
   }
@@ -1273,31 +1326,11 @@ uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
 
 // Share button event listeners
 shareBtn.addEventListener("click", async () => {
-  const success = await copyShareLink(serializePasswordSettingsToURL);
-  if (success) {
-    // Show feedback
-    const originalText = shareBtn.textContent;
-    shareBtn.textContent = "Copied!";
-    setTimeout(() => {
-      shareBtn.textContent = originalText;
-    }, 2000);
-  } else {
-    alert("Failed to copy link. Please copy the URL manually.");
-  }
+  await copyShareUrl("pwd");
 });
 
 uidShareBtn.addEventListener("click", async () => {
-  const success = await copyShareLink(serializeUserIdSettingsToURL);
-  if (success) {
-    // Show feedback
-    const originalText = uidShareBtn.textContent;
-    uidShareBtn.textContent = "Copied!";
-    setTimeout(() => {
-      uidShareBtn.textContent = originalText;
-    }, 2000);
-  } else {
-    alert("Failed to copy link. Please copy the URL manually.");
-  }
+  await copyShareUrl("uid");
 });
 
 [
@@ -1344,7 +1377,8 @@ if (!urlParamsRestored) {
   updateUserIdModeUI();
 } else {
   // URL params were restored, but still restore hardware selection from localStorage if not in URL
-  if (!new URLSearchParams(window.location.search).has("crackHardware")) {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (!urlParams.has("hw")) {
     restoreCrackHardwareSelection();
   }
   // updatePasswordModeUI is already called in restoreSettingsFromURL
@@ -1354,6 +1388,10 @@ if (!urlParamsRestored) {
 // Use setTimeout to ensure DOM is fully ready
 setTimeout(() => {
   updateCrackTimeFromSettings();
+  // Clean URL after applying settings (nice UX)
+  if (urlParamsRestored) {
+    clearUrlParams();
+  }
 }, 0);
 
 // Load word lists - they should be loaded via script tags before this script runs
