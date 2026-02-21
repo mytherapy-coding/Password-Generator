@@ -748,7 +748,16 @@ resetUserIdSettingsBtn.addEventListener("click", () => {
 ------------------------------ */
 /**
  * Serialize current password settings to URL parameters
- * Note: Passwords are NEVER included in the URL
+ * 
+ * SHARED (settings only):
+ * - mode (icloudPreset)
+ * - length
+ * - lower / upper / digits / symbols toggles
+ * - custom symbols set (if any)
+ * - hardware profile for crack-time estimation
+ * 
+ * NOT SHARED (security):
+ * - the generated password (NEVER included)
  */
 function serializePasswordSettingsToURL() {
   const params = new URLSearchParams();
@@ -763,41 +772,56 @@ function serializePasswordSettingsToURL() {
   if (symbolsCheckbox.checked && customSymbolsInput.value) {
     params.set("customSymbols", encodeURIComponent(customSymbolsInput.value));
   }
-  params.set("icloudPreset", icloudPresetCheckbox.checked ? "1" : "0");
+  params.set("icloudPreset", icloudPresetCheckbox.checked ? "1" : "0"); // mode
   params.set("crackHardware", crackHardwareSelect.value);
   params.set("autoGenerate", "1"); // Optionally auto-generate on load
+  
+  // SECURITY: passwordInput.value is NEVER included in URL parameters
   
   return params.toString();
 }
 
 /**
  * Serialize current User ID settings to URL parameters
- * Note: Generated User IDs are NEVER included in the URL
+ * 
+ * SHARED (settings only):
+ * - mode (CVC / Words)
+ * - syllables or words count
+ * - separator
+ * - digits count
+ * - max length
+ * - number of suggestions
+ * - suffix (if any)
+ * 
+ * NOT SHARED (security):
+ * - the list of generated UserID suggestions (NEVER included)
  */
 function serializeUserIdSettingsToURL() {
   const params = new URLSearchParams();
   
   // User ID settings
   params.set("tab", "userId");
-  params.set("uidMode", uidMode.value);
+  params.set("uidMode", uidMode.value); // mode (CVC / Words)
   
   if (uidMode.value === "cvc") {
-    params.set("uidSyllables", uidSyllables.value);
+    params.set("uidSyllables", uidSyllables.value); // syllables count
     params.set("uidAddDigits", uidAddDigits.checked ? "1" : "0");
-    params.set("uidDigitsCount", uidDigitsCount.value);
+    params.set("uidDigitsCount", uidDigitsCount.value); // digits count
     params.set("uidAddSuffix", uidAddSuffix.checked ? "1" : "0");
-    params.set("uidSuffix", encodeURIComponent(uidSuffix.value));
-    params.set("uidMaxLength", uidMaxLength.value);
+    params.set("uidSuffix", encodeURIComponent(uidSuffix.value)); // suffix (if any)
+    params.set("uidMaxLength", uidMaxLength.value); // max length
   } else {
-    params.set("uidWordsCount", uidWordsCount.value);
-    params.set("uidWordsSeparator", uidWordsSeparator.value);
+    params.set("uidWordsCount", uidWordsCount.value); // words count
+    params.set("uidWordsSeparator", uidWordsSeparator.value); // separator
     params.set("uidWordsAddDigits", uidWordsAddDigits.checked ? "1" : "0");
-    params.set("uidWordsDigitsCount", uidWordsDigitsCount.value);
-    params.set("uidWordsMaxLength", uidWordsMaxLength.value);
+    params.set("uidWordsDigitsCount", uidWordsDigitsCount.value); // digits count
+    params.set("uidWordsMaxLength", uidWordsMaxLength.value); // max length
   }
   
-  params.set("uidCount", uidCount.value);
+  params.set("uidCount", uidCount.value); // number of suggestions
   params.set("autoGenerate", "1"); // Optionally auto-generate on load
+  
+  // SECURITY: uidResults (generated UserID list) is NEVER included in URL parameters
   
   return params.toString();
 }
