@@ -329,9 +329,7 @@ const copyBtn = document.getElementById("copy");
 /* Crack-time DOM */
 const crackTimeContainer = document.getElementById("crackTimeContainer");
 const crackHardwareSelect = document.getElementById("crackHardware");
-const crackTimeEntropy = document.getElementById("crackTimeEntropy");
 const crackTimeValue = document.getElementById("crackTimeValue");
-const crackTimeWarning = document.getElementById("crackTimeWarning");
 
 const uidMode = document.getElementById("uidMode");
 const uidCvcControls = document.getElementById("uidCvcControls");
@@ -388,33 +386,12 @@ function updateCrackTimeUI(entropyBits) {
   const profileKey = crackHardwareSelect.value || "cpu";
   const guessesPerSecond = CRACK_HARDWARE_PROFILES[profileKey] || CRACK_HARDWARE_PROFILES.cpu;
 
-  // Calculate keyspace: K = 2^H
-  const keyspace = Math.pow(2, entropyBits);
-  
   // Calculate expected crack time: T = 0.5 * K / R
   const seconds = estimateCrackTimeSeconds(entropyBits, guessesPerSecond);
   const formatted = formatCrackTime(seconds);
 
-  // Display entropy and keyspace info
-  const entropyDisplay = document.getElementById("crackTimeEntropy");
-  if (entropyDisplay) {
-    const keyspaceFormatted = keyspace > 1e15 
-      ? keyspace.toExponential(2) 
-      : keyspace.toLocaleString();
-    entropyDisplay.textContent = `Entropy: ${entropyBits.toFixed(1)} bits | Keyspace: ${keyspaceFormatted} possible passwords`;
-  }
-
   crackTimeContainer.style.display = "";
-  crackTimeValue.textContent = `Estimated crack time: ≈ ${formatted}`;
-  crackTimeWarning.textContent = "";
-
-  if (entropyBits < 20) {
-    crackTimeWarning.textContent =
-      "⚠️ This password is extremely weak and can be cracked almost instantly in an offline attack.";
-  } else if (entropyBits < 45) {
-    crackTimeWarning.textContent =
-      "⚠️ This password is weak. Consider increasing length or adding more character types.";
-  }
+  crackTimeValue.textContent = `≈ ${formatted}`;
 
   try {
     localStorage.setItem(LOCAL_STORAGE_CRACK_KEY, profileKey);
@@ -539,7 +516,6 @@ function handleGeneratePassword() {
   lengthError.textContent = "";
   symbolError.textContent = "";
   copyError.textContent = "";
-  crackTimeWarning.textContent = "";
   crackTimeContainer.style.display = "none";
 
   if (icloudPresetCheckbox.checked) {
@@ -705,7 +681,6 @@ clearBtn.addEventListener("click", () => {
   strengthBarEl.style.background = "gray";
   copyError.textContent = "";
   crackTimeContainer.style.display = "none";
-  crackTimeWarning.textContent = "";
 });
 copyBtn.addEventListener("click", async () => {
   if (!(await copyToClipboard(passwordInput.value))) {
@@ -725,7 +700,6 @@ icloudPresetCheckbox.addEventListener("change", () => {
   updateIcloudUIState();
   savePasswordSettings();
   crackTimeContainer.style.display = "none";
-  crackTimeWarning.textContent = "";
 });
 
 uidMode.addEventListener("change", () => {
@@ -747,7 +721,6 @@ crackHardwareSelect.addEventListener("change", () => {
   const pwd = passwordInput.value;
   if (!pwd) {
     crackTimeContainer.style.display = "none";
-    crackTimeWarning.textContent = "";
     try {
       localStorage.setItem(LOCAL_STORAGE_CRACK_KEY, crackHardwareSelect.value);
     } catch {

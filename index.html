@@ -49,28 +49,23 @@
       <div id="strengthBar"></div>
 
       <!-- CRACK TIME BLOCK -->
-      <div id="crackTimeContainer" class="crack-time" style="display:none; margin-top:8px;">
-        <div id="crackTimeHeader"><strong>Estimated Crack Time (Offline Attack)</strong></div>
-        <div id="crackTimeEntropy" class="info" style="margin-top:4px; font-size:0.9em;"></div>
-        <label style="margin-top:8px;">
-          Attacker hardware (offline, fast hash):
-          <select id="crackHardware">
+      <div id="crackTimeContainer" class="crack-time" style="display:none; margin-top:12px;">
+        <div style="margin-bottom:8px;">
+          <strong>Estimated crack time (offline, fast hash):</strong>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="display:inline-block; margin-right:8px;">Hardware:</label>
+          <select id="crackHardware" style="display:inline-block; width:auto; padding:4px 8px;">
             <option value="cpu">High-end CPU (1×10⁹ guesses/sec) — Modern multi-core CPU</option>
             <option value="rtx4090">RTX 4090 (single GPU) (5×10¹¹ guesses/sec) — Fast hash, real-world order of magnitude</option>
             <option value="rig8x4090">8× RTX 4090 rig (4×10¹² guesses/sec) — Small cracking rig</option>
             <option value="datacenter">Datacenter attacker (1×10¹⁴ guesses/sec) — Large-scale / nation-state level</option>
           </select>
-        </label>
-        <div id="crackTimeValue" class="info" style="margin-top:8px; font-weight:bold; font-size:1.1em;"></div>
-        <div id="crackTimeWarning" class="error" style="margin-top:4px;"></div>
-        <div id="crackTimeDisclaimer" class="note" style="margin-top:12px; font-size:0.85em; padding:8px; background:#f0f0f0; border-left:3px solid #4f46e5;">
-          <strong>Assumptions (worst-case scenario):</strong><br>
-          • <strong>Offline attack:</strong> Attacker already has the password hash<br>
-          • <strong>Fast hashing:</strong> Using fast algorithms (MD5, NTLM, SHA-1)<br>
-          • <strong>No rate limiting:</strong> Unlimited guesses per second<br>
-          • <strong>No lockouts:</strong> No account protection mechanisms<br>
-          • <strong>Modern hardware:</strong> High-end CPU/GPU as selected above<br><br>
-          <strong>Note:</strong> This is <em>not</em> online login guessing. Real systems using slow hashing (bcrypt, Argon2id, PBKDF2) can increase attack time by orders of magnitude. This estimate is educational and shows why stronger passwords matter.
+        </div>
+        <div id="crackTimeValue" style="margin-bottom:8px; font-weight:bold; font-size:1.1em;"></div>
+        <div id="crackTimeDisclaimer" class="note" style="font-size:0.85em; color:#666; margin-top:8px;">
+          Assumes attacker has the password hash and can guess offline using fast hashing algorithms.<br>
+          Slow password hashing (bcrypt / Argon2id) can increase attack time by orders of magnitude.
         </div>
       </div>
     </div>
