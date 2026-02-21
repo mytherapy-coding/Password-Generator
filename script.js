@@ -331,6 +331,8 @@ const presetInfo = document.getElementById("presetInfo");
 const generateBtn = document.getElementById("generate");
 const clearBtn = document.getElementById("clear");
 const copyBtn = document.getElementById("copy");
+const shareBtn = document.getElementById("share");
+const uidShareBtn = document.getElementById("uidShare");
 
 /* Crack-time DOM */
 const crackTimeContainer = document.getElementById("crackTimeContainer");
@@ -742,6 +744,234 @@ resetUserIdSettingsBtn.addEventListener("click", () => {
 });
 
 /* ------------------------------
+   URL PARAMETER HANDLING (SHARE LINK)
+------------------------------ */
+/**
+ * Serialize current password settings to URL parameters
+ * Note: Passwords are NEVER included in the URL
+ */
+function serializePasswordSettingsToURL() {
+  const params = new URLSearchParams();
+  
+  // Password settings
+  params.set("tab", "password");
+  params.set("length", lengthInput.value);
+  params.set("lowercase", lowercaseCheckbox.checked ? "1" : "0");
+  params.set("uppercase", uppercaseCheckbox.checked ? "1" : "0");
+  params.set("digits", digitsCheckbox.checked ? "1" : "0");
+  params.set("symbols", symbolsCheckbox.checked ? "1" : "0");
+  if (symbolsCheckbox.checked && customSymbolsInput.value) {
+    params.set("customSymbols", encodeURIComponent(customSymbolsInput.value));
+  }
+  params.set("icloudPreset", icloudPresetCheckbox.checked ? "1" : "0");
+  params.set("crackHardware", crackHardwareSelect.value);
+  params.set("autoGenerate", "1"); // Optionally auto-generate on load
+  
+  return params.toString();
+}
+
+/**
+ * Serialize current User ID settings to URL parameters
+ * Note: Generated User IDs are NEVER included in the URL
+ */
+function serializeUserIdSettingsToURL() {
+  const params = new URLSearchParams();
+  
+  // User ID settings
+  params.set("tab", "userId");
+  params.set("uidMode", uidMode.value);
+  
+  if (uidMode.value === "cvc") {
+    params.set("uidSyllables", uidSyllables.value);
+    params.set("uidAddDigits", uidAddDigits.checked ? "1" : "0");
+    params.set("uidDigitsCount", uidDigitsCount.value);
+    params.set("uidAddSuffix", uidAddSuffix.checked ? "1" : "0");
+    params.set("uidSuffix", encodeURIComponent(uidSuffix.value));
+    params.set("uidMaxLength", uidMaxLength.value);
+  } else {
+    params.set("uidWordsCount", uidWordsCount.value);
+    params.set("uidWordsSeparator", uidWordsSeparator.value);
+    params.set("uidWordsAddDigits", uidWordsAddDigits.checked ? "1" : "0");
+    params.set("uidWordsDigitsCount", uidWordsDigitsCount.value);
+    params.set("uidWordsMaxLength", uidWordsMaxLength.value);
+  }
+  
+  params.set("uidCount", uidCount.value);
+  params.set("autoGenerate", "1"); // Optionally auto-generate on load
+  
+  return params.toString();
+}
+
+/**
+ * Parse URL parameters and restore settings
+ */
+function restoreSettingsFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  
+  if (params.toString() === "") return false; // No URL parameters
+  
+  const tab = params.get("tab");
+  if (tab === "password") {
+    // Restore password settings
+    if (params.has("length")) {
+      const length = parseInt(params.get("length"), 10);
+      if (length >= 4 && length <= 64) {
+        lengthInput.value = length;
+      }
+    }
+    
+    if (params.has("lowercase")) {
+      lowercaseCheckbox.checked = params.get("lowercase") === "1";
+    }
+    if (params.has("uppercase")) {
+      uppercaseCheckbox.checked = params.get("uppercase") === "1";
+    }
+    if (params.has("digits")) {
+      digitsCheckbox.checked = params.get("digits") === "1";
+    }
+    if (params.has("symbols")) {
+      symbolsCheckbox.checked = params.get("symbols") === "1";
+    }
+    if (params.has("customSymbols")) {
+      customSymbolsInput.value = decodeURIComponent(params.get("customSymbols"));
+    }
+    if (params.has("icloudPreset")) {
+      icloudPresetCheckbox.checked = params.get("icloudPreset") === "1";
+    }
+    if (params.has("crackHardware")) {
+      const hardware = params.get("crackHardware");
+      if (CRACK_HARDWARE_PROFILES[hardware]) {
+        crackHardwareSelect.value = hardware;
+      }
+    }
+    
+    updateIcloudUIState();
+    
+    // Switch to password tab
+    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+    document.querySelector('[data-tab="passwordTab"]').classList.add("active");
+    document.getElementById("passwordTab").classList.add("active");
+    
+    // Auto-generate if requested
+    if (params.get("autoGenerate") === "1") {
+      setTimeout(() => {
+        handleGeneratePassword();
+      }, 100);
+    }
+    
+    return true;
+  } else if (tab === "userId") {
+    // Restore User ID settings
+    if (params.has("uidMode")) {
+      const mode = params.get("uidMode");
+      if (mode === "cvc" || mode === "words") {
+        uidMode.value = mode;
+      }
+    }
+    
+    // Update UI mode first to show/hide correct controls
+    updateUserIdModeUI();
+    
+    if (uidMode.value === "cvc") {
+      if (params.has("uidSyllables")) {
+        uidSyllables.value = params.get("uidSyllables");
+      }
+      if (params.has("uidAddDigits")) {
+        uidAddDigits.checked = params.get("uidAddDigits") === "1";
+      }
+      if (params.has("uidDigitsCount")) {
+        uidDigitsCount.value = params.get("uidDigitsCount");
+      }
+      if (params.has("uidAddSuffix")) {
+        uidAddSuffix.checked = params.get("uidAddSuffix") === "1";
+      }
+      if (params.has("uidSuffix")) {
+        uidSuffix.value = decodeURIComponent(params.get("uidSuffix"));
+      }
+      if (params.has("uidMaxLength")) {
+        const maxLength = parseInt(params.get("uidMaxLength"), 10);
+        if (maxLength >= 6 && maxLength <= 24) {
+          uidMaxLength.value = maxLength;
+        }
+      }
+    } else {
+      if (params.has("uidWordsCount")) {
+        uidWordsCount.value = params.get("uidWordsCount");
+      }
+      if (params.has("uidWordsSeparator")) {
+        uidWordsSeparator.value = params.get("uidWordsSeparator");
+      }
+      if (params.has("uidWordsAddDigits")) {
+        uidWordsAddDigits.checked = params.get("uidWordsAddDigits") === "1";
+      }
+      if (params.has("uidWordsDigitsCount")) {
+        uidWordsDigitsCount.value = params.get("uidWordsDigitsCount");
+      }
+      if (params.has("uidWordsMaxLength")) {
+        const maxLength = parseInt(params.get("uidWordsMaxLength"), 10);
+        if (maxLength >= 8 && maxLength <= 30) {
+          uidWordsMaxLength.value = maxLength;
+        }
+      }
+    }
+    
+    if (params.has("uidCount")) {
+      const count = params.get("uidCount");
+      if (count === "5" || count === "10" || count === "20") {
+        uidCount.value = count;
+      }
+    }
+    
+    // Switch to User ID tab
+    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+    document.querySelector('[data-tab="userIdTab"]').classList.add("active");
+    document.getElementById("userIdTab").classList.add("active");
+    
+    // Auto-generate if requested
+    if (params.get("autoGenerate") === "1") {
+      setTimeout(() => {
+        handleGenerateUserIds();
+      }, 100);
+    }
+    
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Copy share link to clipboard
+ */
+async function copyShareLink(serializeFunction) {
+  const params = serializeFunction();
+  const url = window.location.origin + window.location.pathname + "?" + params;
+  
+  try {
+    await navigator.clipboard.writeText(url);
+    return true;
+  } catch {
+    // Fallback: select and copy
+    const textarea = document.createElement("textarea");
+    textarea.value = url;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return true;
+    } catch {
+      document.body.removeChild(textarea);
+      return false;
+    }
+  }
+}
+
+/* ------------------------------
    EVENT LISTENERS
 ------------------------------ */
 generateBtn.addEventListener("click", handleGeneratePassword);
@@ -784,6 +1014,35 @@ uidMode.addEventListener("change", () => {
 });
 uidGenerateBtn.addEventListener("click", handleGenerateUserIds);
 
+// Share button event listeners
+shareBtn.addEventListener("click", async () => {
+  const success = await copyShareLink(serializePasswordSettingsToURL);
+  if (success) {
+    // Show feedback
+    const originalText = shareBtn.textContent;
+    shareBtn.textContent = "Copied!";
+    setTimeout(() => {
+      shareBtn.textContent = originalText;
+    }, 2000);
+  } else {
+    alert("Failed to copy link. Please copy the URL manually.");
+  }
+});
+
+uidShareBtn.addEventListener("click", async () => {
+  const success = await copyShareLink(serializeUserIdSettingsToURL);
+  if (success) {
+    // Show feedback
+    const originalText = uidShareBtn.textContent;
+    uidShareBtn.textContent = "Copied!";
+    setTimeout(() => {
+      uidShareBtn.textContent = originalText;
+    }, 2000);
+  } else {
+    alert("Failed to copy link. Please copy the URL manually.");
+  }
+});
+
 [
   uidSyllables, uidAddDigits, uidDigitsCount, uidAddSuffix, uidSuffix, uidMaxLength,
   uidWordsCount, uidWordsSeparator, uidWordsAddDigits, uidWordsDigitsCount, uidWordsMaxLength,
@@ -815,11 +1074,22 @@ function restoreCrackHardwareSelection() {
   }
 }
 
-restorePasswordSettings();
-restoreUserIdSettings();
-updateIcloudUIState();
-updateUserIdModeUI();
-restoreCrackHardwareSelection();
+// Check for URL parameters first (share link)
+const urlParamsRestored = restoreSettingsFromURL();
+
+// If no URL parameters, restore from localStorage
+if (!urlParamsRestored) {
+  restorePasswordSettings();
+  restoreUserIdSettings();
+  updateIcloudUIState();
+  updateUserIdModeUI();
+  restoreCrackHardwareSelection();
+} else {
+  // URL params were restored, but still restore hardware selection from localStorage if not in URL
+  if (!new URLSearchParams(window.location.search).has("crackHardware")) {
+    restoreCrackHardwareSelection();
+  }
+}
 
 // Recompute crack time after restoring settings (if password exists)
 // Use setTimeout to ensure DOM is fully ready
