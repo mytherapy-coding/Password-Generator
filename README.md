@@ -72,6 +72,67 @@ The crack-time estimate assumes:
 
 **Important Note**: This is *not* online login guessing. Real systems using slow hashing (bcrypt, Argon2id, PBKDF2) can increase attack time by orders of magnitude. This estimate is educational and demonstrates why stronger passwords matter.  
 
+### How Crack Time is Estimated
+
+Crack time is estimated assuming an offline attacker using fast password hashing. Real systems using Argon2id or bcrypt significantly slow down attacks.
+
+#### Entropy Definition
+
+**Entropy (H)** measures the randomness and unpredictability of a password. It's calculated as:
+
+```
+H = length × log₂(poolSize)
+```
+
+Where:
+- **length** = number of characters in the password
+- **poolSize** = number of possible characters at each position (e.g., 26 for lowercase only, 62 for alphanumeric, 94 for full ASCII)
+
+Higher entropy means more possible password combinations, making it harder to guess.
+
+#### Expected-Time Formula
+
+The estimated crack time uses the following formula:
+
+```
+T = 0.5 × K / R
+```
+
+Where:
+- **T** = Expected crack time (in seconds)
+- **K** = Keyspace = 2^H (total possible password combinations)
+- **R** = Guesses per second (hardware-dependent attack rate)
+- **0.5** = Average case factor (on average, an attacker needs to try 50% of the keyspace)
+
+The keyspace grows exponentially with entropy: each additional bit of entropy doubles the number of possible passwords.
+
+#### Offline vs Online Attacks
+
+**Offline Attack** (what this tool estimates):
+- Attacker has already obtained the password hash from a compromised database
+- Can make unlimited guesses per second without rate limiting
+- Uses fast hashing algorithms (MD5, SHA-1, NTLM) for speed
+- This is the worst-case scenario for password security
+
+**Online Attack** (not estimated here):
+- Attacker tries to guess passwords through login interfaces
+- Rate limited by the system (e.g., 3 attempts per minute)
+- Account lockouts after failed attempts
+- Much slower and less effective than offline attacks
+
+#### Disclaimer About Hashing Algorithms
+
+The crack-time estimates assume **fast hashing algorithms** like MD5, SHA-1, or NTLM, which allow attackers to test billions of password guesses per second.
+
+**Real-world systems** use **slow password hashing** algorithms designed to resist brute-force attacks:
+- **bcrypt**: Configurable work factor, slows down hashing
+- **Argon2id**: Memory-hard function, winner of Password Hashing Competition
+- **PBKDF2**: Key derivation function with iteration count
+
+These algorithms can increase attack time by **orders of magnitude** (100x to 1,000,000x slower), making even moderate-strength passwords practically uncrackable in offline attacks.
+
+**Example**: A password that might be cracked in 1 day with MD5 could take 100+ years with Argon2id, even with the same hardware.
+
 ---
 
 ## 📦 Technologies Used
