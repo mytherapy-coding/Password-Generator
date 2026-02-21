@@ -20,23 +20,56 @@
     <div id="passwordTab" class="tab-content active">
       <h2>Password Generator</h2>
 
-      <label>Password Length:
-        <input type="number" id="length" min="4" max="64" value="12" />
+      <label>Mode:
+        <select id="passwordMode">
+          <option value="strong">Strong (custom sets)</option>
+          <option value="easyWrite">Easy to write</option>
+          <option value="easySay">Easy to say</option>
+        </select>
       </label>
-      <div id="lengthError" class="error"></div>
-
-      <label><input type="checkbox" id="lowercase" checked /> Lowercase</label>
-      <label><input type="checkbox" id="uppercase" checked /> Uppercase</label>
-      <label><input type="checkbox" id="digits" checked /> Digits</label>
-      <label><input type="checkbox" id="symbols" /> Symbols</label>
-
-      <label>Custom Symbols:
-        <input type="text" id="customSymbols" placeholder="!@#$%^&*" />
-      </label>
-      <div id="symbolError" class="error"></div>
 
       <label><input type="checkbox" id="icloudPreset" /> iCloud‑style preset</label>
       <div id="presetInfo" class="info"></div>
+
+      <div id="strongModeControls">
+        <label>Password Length:
+          <input type="number" id="length" min="4" max="64" value="12" />
+        </label>
+        <div id="lengthError" class="error"></div>
+
+        <label><input type="checkbox" id="lowercase" checked /> Lowercase</label>
+        <label><input type="checkbox" id="uppercase" checked /> Uppercase</label>
+        <label><input type="checkbox" id="digits" checked /> Digits</label>
+        <label><input type="checkbox" id="symbols" /> Symbols</label>
+
+        <label>Custom Symbols:
+          <input type="text" id="customSymbols" placeholder="!@#$%^&*" />
+        </label>
+        <div id="symbolError" class="error"></div>
+      </div>
+
+      <div id="easyWriteModeControls" style="display:none;">
+        <label>Password Length:
+          <input type="number" id="easyWriteLength" min="8" max="64" value="16" />
+        </label>
+        <div class="info" style="font-size:0.9em; margin-top:4px;">
+          Uses unambiguous characters only (removed: O, 0, I, l, 1, S, 5, B, 8)
+        </div>
+      </div>
+
+      <div id="easySayModeControls" style="display:none;">
+        <label>Syllables:
+          <select id="easySaySyllables">
+            <option value="4">4 (12 letters)</option>
+            <option value="5" selected>5 (15 letters)</option>
+            <option value="6">6 (18 letters)</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="easySayAddDigit" checked /> Add one digit at end</label>
+        <div class="info" style="font-size:0.9em; margin-top:4px;">
+          Generates pronounceable CVC syllables (consonant-vowel-consonant)
+        </div>
+      </div>
 
       <button id="generate">Generate</button>
       <button id="clear">Clear</button>

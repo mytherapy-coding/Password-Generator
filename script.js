@@ -22,6 +22,15 @@ const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
 const VOWELS = "aeiouy";
 const DIGITS = "0123456789";
 
+// Unambiguous characters (removed: O, 0, I, l, 1, S, 5, B, 8)
+const UNAMBIGUOUS_LOWERCASE = "abcdefghjkmnpqrtuvwxyz"; // removed: i, l, o, s
+const UNAMBIGUOUS_UPPERCASE = "ABCDEFGHJKMNPQRTUVWXYZ"; // removed: I, O, S, B
+const UNAMBIGUOUS_DIGITS = "234679"; // removed: 0, 1, 5, 8
+const SAFE_SYMBOLS = "-_!@#"; // Default safe symbol set
+
+// Easy to say: unambiguous consonants (removed confusing chars)
+const EASY_SAY_CONSONANTS = "bcdfghjkmnpqrstvwxyz"; // removed: l (confusing with I/1)
+
 /* Crack-time hardware profiles (guesses per second) */
 const CRACK_HARDWARE_PROFILES = {
   cpu: 1e9,          // High-end CPU
@@ -92,28 +101,74 @@ function generateChunk6() {
 }
 
 function generateIcloudPassword() {
+  // Generate 3 chunks of 6 letters each (CVC-CVC pattern)
   let chunks = [generateChunk6(), generateChunk6(), generateChunk6()];
   let pwd = chunks.join("-");
 
+  // Find valid positions for digit insertion (not at first position, near hyphens or at end)
   const positions = [];
   for (let i = 0; i < pwd.length; i++) {
     if (pwd[i] === "-") {
-      if (i - 1 >= 0) positions.push(i - 1);
-      if (i + 1 < pwd.length) positions.push(i + 1);
+      // Positions adjacent to hyphens (but not before first character)
+      if (i - 1 > 0) positions.push(i - 1); // After hyphen, but not first char
+      if (i + 1 < pwd.length) positions.push(i + 1); // Before hyphen
     }
   }
-  positions.push(pwd.length - 1);
+  // Last position is valid (but not first)
+  if (pwd.length > 1) {
+    positions.push(pwd.length - 1);
+  }
 
-  const pos = pick(positions);
-  pwd = pwd.slice(0, pos) + pick(DIGITS) + pwd.slice(pos + 1);
+  // Insert exactly one digit at a random valid position (never at first)
+  if (positions.length > 0) {
+    const pos = pick(positions);
+    pwd = pwd.slice(0, pos) + pick(DIGITS) + pwd.slice(pos + 1);
+  }
 
+  // Uppercase exactly one letter (not the first character)
   const letters = [];
-  for (let i = 0; i < pwd.length; i++) {
+  for (let i = 1; i < pwd.length; i++) { // Start from index 1, skip first
     if (/[a-z]/.test(pwd[i])) letters.push(i);
   }
-  const up = pick(letters);
-  pwd = pwd.slice(0, up) + pwd[up].toUpperCase() + pwd.slice(up + 1);
+  if (letters.length > 0) {
+    const up = pick(letters);
+    pwd = pwd.slice(0, up) + pwd[up].toUpperCase() + pwd.slice(up + 1);
+  }
 
+  return pwd;
+}
+
+/* ------------------------------
+   EASY TO WRITE PASSWORD
+------------------------------ */
+function generateEasyWritePassword(length) {
+  // Use unambiguous characters only
+  let pool = UNAMBIGUOUS_LOWERCASE + UNAMBIGUOUS_UPPERCASE + UNAMBIGUOUS_DIGITS + SAFE_SYMBOLS;
+  
+  let pwd = "";
+  for (let i = 0; i < length; i++) {
+    pwd += pick(pool);
+  }
+  
+  return pwd;
+}
+
+/* ------------------------------
+   EASY TO SAY PASSWORD
+------------------------------ */
+function generateEasySayPassword(syllableCount, addDigit) {
+  // Generate CVC syllables using unambiguous consonants
+  let pwd = "";
+  
+  for (let i = 0; i < syllableCount; i++) {
+    pwd += pick(EASY_SAY_CONSONANTS) + pick(VOWELS) + pick(EASY_SAY_CONSONANTS);
+  }
+  
+  // Add exactly one digit at the end if requested
+  if (addDigit) {
+    pwd += pick(UNAMBIGUOUS_DIGITS);
+  }
+  
   return pwd;
 }
 
@@ -311,6 +366,7 @@ async function copyToClipboard(text) {
 /* ------------------------------
    DOM ELEMENTS
 ------------------------------ */
+const passwordMode = document.getElementById("passwordMode");
 const lengthInput = document.getElementById("length");
 const lowercaseCheckbox = document.getElementById("lowercase");
 const uppercaseCheckbox = document.getElementById("uppercase");
@@ -318,6 +374,14 @@ const digitsCheckbox = document.getElementById("digits");
 const symbolsCheckbox = document.getElementById("symbols");
 const customSymbolsInput = document.getElementById("customSymbols");
 const icloudPresetCheckbox = document.getElementById("icloudPreset");
+
+// Mode-specific controls
+const strongModeControls = document.getElementById("strongModeControls");
+const easyWriteModeControls = document.getElementById("easyWriteModeControls");
+const easyWriteLength = document.getElementById("easyWriteLength");
+const easySayModeControls = document.getElementById("easySayModeControls");
+const easySaySyllables = document.getElementById("easySaySyllables");
+const easySayAddDigit = document.getElementById("easySayAddDigit");
 
 const passwordInput = document.getElementById("password");
 const strengthLabelEl = document.getElementById("strengthLabel");
@@ -367,16 +431,46 @@ const resetUserIdSettingsBtn = document.getElementById("resetUserIdSettings");
 /* ------------------------------
    UI STATE
 ------------------------------ */
-function updateIcloudUIState() {
-  const on = icloudPresetCheckbox.checked;
-  lengthInput.disabled = on;
-  lowercaseCheckbox.disabled = on;
-  uppercaseCheckbox.disabled = on;
-  digitsCheckbox.disabled = on;
-  symbolsCheckbox.disabled = on;
-  customSymbolsInput.disabled = on;
+function updatePasswordModeUI() {
+  const mode = passwordMode.value;
+  const isIcloud = icloudPresetCheckbox.checked;
+  
+  // Show/hide mode-specific controls
+  strongModeControls.style.display = (mode === "strong" && !isIcloud) ? "" : "none";
+  easyWriteModeControls.style.display = (mode === "easyWrite" && !isIcloud) ? "" : "none";
+  easySayModeControls.style.display = (mode === "easySay" && !isIcloud) ? "" : "none";
+  
+  // Disable all controls if iCloud preset is active
+  if (isIcloud) {
+    lengthInput.disabled = true;
+    lowercaseCheckbox.disabled = true;
+    uppercaseCheckbox.disabled = true;
+    digitsCheckbox.disabled = true;
+    symbolsCheckbox.disabled = true;
+    customSymbolsInput.disabled = true;
+    easyWriteLength.disabled = true;
+    easySaySyllables.disabled = true;
+    easySayAddDigit.disabled = true;
+    passwordMode.disabled = true;
+    presetInfo.textContent = "iCloud preset is active.";
+  } else {
+    lengthInput.disabled = false;
+    lowercaseCheckbox.disabled = false;
+    uppercaseCheckbox.disabled = false;
+    digitsCheckbox.disabled = false;
+    symbolsCheckbox.disabled = false;
+    customSymbolsInput.disabled = false;
+    easyWriteLength.disabled = false;
+    easySaySyllables.disabled = false;
+    easySayAddDigit.disabled = false;
+    passwordMode.disabled = false;
+    presetInfo.textContent = "";
+  }
+}
 
-  presetInfo.textContent = on ? "iCloud preset is active." : "";
+// Keep for backward compatibility
+function updateIcloudUIState() {
+  updatePasswordModeUI();
 }
 
 function updateUserIdModeUI() {
@@ -435,41 +529,69 @@ function updateCrackTimeFromSettings() {
     return;
   }
 
-  // Validate length
-  const length = Number(lengthInput.value);
-  if (length < 4 || length > 64) {
-    crackTimeContainer.style.display = "none";
-    return;
-  }
+  const mode = passwordMode.value;
+  let entropyBits = 0;
 
-  // Validate symbols if enabled
-  let symbols = "";
-  if (symbolsCheckbox.checked) {
-    const val = validateSymbolsInput(customSymbolsInput.value);
-    if (!val.ok) {
+  if (mode === "easyWrite") {
+    const length = Number(easyWriteLength.value);
+    if (length < 8 || length > 64) {
       crackTimeContainer.style.display = "none";
       return;
     }
-    symbols = val.symbols;
+    const poolSize = UNAMBIGUOUS_LOWERCASE.length + UNAMBIGUOUS_UPPERCASE.length + 
+                     UNAMBIGUOUS_DIGITS.length + SAFE_SYMBOLS.length;
+    entropyBits = calculateEntropyBits(length, poolSize);
+    
+  } else if (mode === "easySay") {
+    const syllableCount = Number(easySaySyllables.value);
+    const addDigit = easySayAddDigit.checked;
+    const syllableEntropy = Math.log2(EASY_SAY_CONSONANTS.length) + 
+                           Math.log2(VOWELS.length) + 
+                           Math.log2(EASY_SAY_CONSONANTS.length);
+    entropyBits = syllableCount * syllableEntropy;
+    if (addDigit) {
+      entropyBits += Math.log2(UNAMBIGUOUS_DIGITS.length);
+    }
+    
+  } else {
+    // Strong mode
+    const length = Number(lengthInput.value);
+    if (length < 4 || length > 64) {
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+
+    let symbols = "";
+    if (symbolsCheckbox.checked) {
+      if (!customSymbolsInput.value.trim()) {
+        symbols = SAFE_SYMBOLS;
+      } else {
+        const val = validateSymbolsInput(customSymbolsInput.value);
+        if (!val.ok) {
+          crackTimeContainer.style.display = "none";
+          return;
+        }
+        symbols = val.symbols;
+      }
+    }
+
+    const charset = getCharset({
+      useLower: lowercaseCheckbox.checked,
+      useUpper: uppercaseCheckbox.checked,
+      useDigits: digitsCheckbox.checked,
+      useSymbols: symbolsCheckbox.checked,
+      symbols
+    });
+
+    if (!charset.ok) {
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+
+    entropyBits = calculateEntropyBits(length, charset.pool.length);
   }
 
-  // Get charset
-  const charset = getCharset({
-    useLower: lowercaseCheckbox.checked,
-    useUpper: uppercaseCheckbox.checked,
-    useDigits: digitsCheckbox.checked,
-    useSymbols: symbolsCheckbox.checked,
-    symbols
-  });
-
-  if (!charset.ok) {
-    crackTimeContainer.style.display = "none";
-    return;
-  }
-
-  // Calculate entropy and update
-  const bits = calculateEntropyBits(length, charset.pool.length);
-  updateCrackTimeUI(bits);
+  updateCrackTimeUI(entropyBits);
 }
 
 /* ------------------------------
@@ -477,13 +599,17 @@ function updateCrackTimeFromSettings() {
 ------------------------------ */
 function savePasswordSettings() {
   const settings = {
+    passwordMode: passwordMode.value,
     length: lengthInput.value,
     lowercase: lowercaseCheckbox.checked,
     uppercase: uppercaseCheckbox.checked,
     digits: digitsCheckbox.checked,
     symbols: symbolsCheckbox.checked,
     customSymbols: customSymbolsInput.value,
-    icloudPreset: icloudPresetCheckbox.checked
+    icloudPreset: icloudPresetCheckbox.checked,
+    easyWriteLength: easyWriteLength.value,
+    easySaySyllables: easySaySyllables.value,
+    easySayAddDigit: easySayAddDigit.checked
   };
   localStorage.setItem("passwordSettings", JSON.stringify(settings));
 }
@@ -493,6 +619,7 @@ function restorePasswordSettings() {
   if (!raw) return;
   try {
     const s = JSON.parse(raw);
+    passwordMode.value = s.passwordMode ?? "strong";
     lengthInput.value = s.length ?? "12";
     lowercaseCheckbox.checked = s.lowercase ?? true;
     uppercaseCheckbox.checked = s.uppercase ?? true;
@@ -500,6 +627,10 @@ function restorePasswordSettings() {
     symbolsCheckbox.checked = s.symbols ?? false;
     customSymbolsInput.value = s.customSymbols ?? "";
     icloudPresetCheckbox.checked = s.icloudPreset ?? false;
+    easyWriteLength.value = s.easyWriteLength ?? "16";
+    easySaySyllables.value = s.easySaySyllables ?? "5";
+    easySayAddDigit.checked = s.easySayAddDigit ?? true;
+    updatePasswordModeUI();
   } catch (_) {}
 }
 
@@ -590,6 +721,7 @@ function handleGeneratePassword() {
   copyError.textContent = "";
   crackTimeContainer.style.display = "none";
 
+  // iCloud preset takes precedence
   if (icloudPresetCheckbox.checked) {
     const pwd = generateIcloudPassword();
     passwordInput.value = pwd;
@@ -602,46 +734,92 @@ function handleGeneratePassword() {
     return;
   }
 
-  const length = Number(lengthInput.value);
-  if (length < 4 || length > 64) {
-    lengthError.textContent = "Length must be 4–64.";
-    crackTimeContainer.style.display = "none";
-    return;
-  }
+  const mode = passwordMode.value;
+  let pwd = "";
+  let entropyBits = 0;
 
-  let symbols = "";
-  if (symbolsCheckbox.checked) {
-    const val = validateSymbolsInput(customSymbolsInput.value);
-    if (!val.ok) {
-      symbolError.textContent = val.msg;
+  if (mode === "easyWrite") {
+    // Easy to write mode
+    const length = Number(easyWriteLength.value);
+    if (length < 8 || length > 64) {
+      lengthError.textContent = "Length must be 8–64 for Easy to write mode.";
       crackTimeContainer.style.display = "none";
       return;
     }
-    symbols = val.symbols;
+    
+    pwd = generateEasyWritePassword(length);
+    
+    // Calculate entropy: pool size = unambiguous lowercase + uppercase + digits + symbols
+    const poolSize = UNAMBIGUOUS_LOWERCASE.length + UNAMBIGUOUS_UPPERCASE.length + 
+                     UNAMBIGUOUS_DIGITS.length + SAFE_SYMBOLS.length;
+    entropyBits = calculateEntropyBits(length, poolSize);
+    
+  } else if (mode === "easySay") {
+    // Easy to say mode
+    const syllableCount = Number(easySaySyllables.value);
+    const addDigit = easySayAddDigit.checked;
+    
+    pwd = generateEasySayPassword(syllableCount, addDigit);
+    const length = pwd.length;
+    
+    // Calculate entropy: each syllable is CVC (consonant * vowel * consonant)
+    // If digit added, multiply by digit pool size
+    const syllableEntropy = Math.log2(EASY_SAY_CONSONANTS.length) + 
+                           Math.log2(VOWELS.length) + 
+                           Math.log2(EASY_SAY_CONSONANTS.length);
+    entropyBits = syllableCount * syllableEntropy;
+    if (addDigit) {
+      entropyBits += Math.log2(UNAMBIGUOUS_DIGITS.length);
+    }
+    
+  } else {
+    // Strong mode (custom sets)
+    const length = Number(lengthInput.value);
+    if (length < 4 || length > 64) {
+      lengthError.textContent = "Length must be 4–64.";
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+
+    let symbols = "";
+    if (symbolsCheckbox.checked) {
+      // Default to safe symbols if custom symbols is empty
+      if (!customSymbolsInput.value.trim()) {
+        symbols = SAFE_SYMBOLS;
+      } else {
+        const val = validateSymbolsInput(customSymbolsInput.value);
+        if (!val.ok) {
+          symbolError.textContent = val.msg;
+          crackTimeContainer.style.display = "none";
+          return;
+        }
+        symbols = val.symbols;
+      }
+    }
+
+    const charset = getCharset({
+      useLower: lowercaseCheckbox.checked,
+      useUpper: uppercaseCheckbox.checked,
+      useDigits: digitsCheckbox.checked,
+      useSymbols: symbolsCheckbox.checked,
+      symbols
+    });
+
+    if (!charset.ok) {
+      symbolError.textContent = charset.msg;
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+
+    pwd = generatePassword({ length, pool: charset.pool });
+    entropyBits = calculateEntropyBits(length, charset.pool.length);
   }
 
-  const charset = getCharset({
-    useLower: lowercaseCheckbox.checked,
-    useUpper: uppercaseCheckbox.checked,
-    useDigits: digitsCheckbox.checked,
-    useSymbols: symbolsCheckbox.checked,
-    symbols
-  });
-
-  if (!charset.ok) {
-    symbolError.textContent = charset.msg;
-    crackTimeContainer.style.display = "none";
-    return;
-  }
-
-  const pwd = generatePassword({ length, pool: charset.pool });
   passwordInput.value = pwd;
+  strengthLabelEl.textContent = entropyBits < 45 ? "Weak" : entropyBits < 70 ? "Medium" : "Strong";
+  strengthBarEl.style.background = entropyBits < 45 ? "red" : entropyBits < 70 ? "orange" : "green";
 
-  const bits = calculateEntropyBits(length, charset.pool.length);
-  strengthLabelEl.textContent = bits < 45 ? "Weak" : bits < 70 ? "Medium" : "Strong";
-  strengthBarEl.style.background = bits < 45 ? "red" : bits < 70 ? "orange" : "green";
-
-  updateCrackTimeUI(bits);
+  updateCrackTimeUI(entropyBits);
 }
 
 /* ------------------------------
@@ -764,6 +942,7 @@ function serializePasswordSettingsToURL() {
   
   // Password settings
   params.set("tab", "password");
+  params.set("passwordMode", passwordMode.value); // mode
   params.set("length", lengthInput.value);
   params.set("lowercase", lowercaseCheckbox.checked ? "1" : "0");
   params.set("uppercase", uppercaseCheckbox.checked ? "1" : "0");
@@ -773,7 +952,10 @@ function serializePasswordSettingsToURL() {
     // URLSearchParams.set() automatically handles URL encoding (e.g., !@#$&=)
     params.set("customSymbols", customSymbolsInput.value);
   }
-  params.set("icloudPreset", icloudPresetCheckbox.checked ? "1" : "0"); // mode
+  params.set("icloudPreset", icloudPresetCheckbox.checked ? "1" : "0");
+  params.set("easyWriteLength", easyWriteLength.value);
+  params.set("easySaySyllables", easySaySyllables.value);
+  params.set("easySayAddDigit", easySayAddDigit.checked ? "1" : "0");
   params.set("crackHardware", crackHardwareSelect.value);
   params.set("autoGenerate", "1"); // Optionally auto-generate on load
   
@@ -839,6 +1021,13 @@ function restoreSettingsFromURL() {
   const tab = params.get("tab");
   if (tab === "password") {
     // Restore password settings
+    if (params.has("passwordMode")) {
+      const mode = params.get("passwordMode");
+      if (mode === "strong" || mode === "easyWrite" || mode === "easySay") {
+        passwordMode.value = mode;
+      }
+    }
+    
     if (params.has("length")) {
       const length = parseInt(params.get("length"), 10);
       if (length >= 4 && length <= 64) {
@@ -865,6 +1054,21 @@ function restoreSettingsFromURL() {
     if (params.has("icloudPreset")) {
       icloudPresetCheckbox.checked = params.get("icloudPreset") === "1";
     }
+    if (params.has("easyWriteLength")) {
+      const length = parseInt(params.get("easyWriteLength"), 10);
+      if (length >= 8 && length <= 64) {
+        easyWriteLength.value = length;
+      }
+    }
+    if (params.has("easySaySyllables")) {
+      const syllables = params.get("easySaySyllables");
+      if (syllables === "4" || syllables === "5" || syllables === "6") {
+        easySaySyllables.value = syllables;
+      }
+    }
+    if (params.has("easySayAddDigit")) {
+      easySayAddDigit.checked = params.get("easySayAddDigit") === "1";
+    }
     if (params.has("crackHardware")) {
       const hardware = params.get("crackHardware");
       if (CRACK_HARDWARE_PROFILES[hardware]) {
@@ -872,7 +1076,7 @@ function restoreSettingsFromURL() {
       }
     }
     
-    updateIcloudUIState();
+    updatePasswordModeUI();
     
     // Switch to password tab
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
@@ -1033,8 +1237,30 @@ customSymbolsInput.addEventListener("input", () => {
   updateCrackTimeFromSettings();
 });
 
+passwordMode.addEventListener("change", () => {
+  updatePasswordModeUI();
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
 icloudPresetCheckbox.addEventListener("change", () => {
-  updateIcloudUIState();
+  updatePasswordModeUI();
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
+// Easy mode controls
+easyWriteLength.addEventListener("change", () => {
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
+easySaySyllables.addEventListener("change", () => {
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
+easySayAddDigit.addEventListener("change", () => {
   savePasswordSettings();
   updateCrackTimeFromSettings();
 });
@@ -1112,7 +1338,7 @@ const urlParamsRestored = restoreSettingsFromURL();
 if (!urlParamsRestored) {
   restorePasswordSettings();
   restoreUserIdSettings();
-  updateIcloudUIState();
+  updatePasswordModeUI();
   updateUserIdModeUI();
   restoreCrackHardwareSelection();
 } else {
