@@ -970,27 +970,46 @@ function handleGenerateUserIds() {
 
   const count = Number(uidCount.value);
   const results = [];
+  const seen = new Set();
+  let attempts = 0;
+  const maxAttempts = count * 20;
 
   for (let i = 0; i < count; i++) {
     let id = null;
+    
+    // Try to generate a unique ID
+    for (let j = 0; j < 50; j++) {
+      attempts++;
+      if (attempts > maxAttempts) {
+        uidError.textContent = "Could not generate enough unique IDs. Try increasing max length or reducing count.";
+        return;
+      }
 
-    if (mode === "cvc") {
-      id = generateCvcId({
-        syllables: Number(uidSyllables.value),
-        addDigits: uidAddDigits.checked,
-        digitsCount: Number(uidDigitsCount.value),
-        addSuffix: uidAddSuffix.checked,
-        suffix: uidSuffix.value,
-        maxLength: Number(uidMaxLength.value)
-      });
-    } else {
-      id = generateWordsId({
-        wordsCount: Number(uidWordsCount.value),
-        separator: uidWordsSeparator.value,
-        addDigits: uidWordsAddDigits.checked,
-        digitsCount: Number(uidWordsDigitsCount.value),
-        maxLength: Number(uidWordsMaxLength.value)
-      });
+      if (mode === "cvc") {
+        id = generateCvcId({
+          syllables: Number(uidSyllables.value),
+          addDigits: uidAddDigits.checked,
+          digitsCount: Number(uidDigitsCount.value),
+          addSuffix: uidAddSuffix.checked,
+          suffix: uidSuffix.value,
+          maxLength: Number(uidMaxLength.value)
+        });
+      } else {
+        id = generateWordsId({
+          wordsCount: Number(uidWordsCount.value),
+          separator: uidWordsSeparator.value,
+          addDigits: uidWordsAddDigits.checked,
+          digitsCount: Number(uidWordsDigitsCount.value),
+          maxLength: Number(uidWordsMaxLength.value)
+        });
+      }
+
+      if (id && !seen.has(id)) {
+        seen.add(id);
+        results.push(id);
+        break;
+      }
+      id = null;
     }
 
     if (!id) {
@@ -999,8 +1018,6 @@ function handleGenerateUserIds() {
         : "Could not generate valid IDs. Increase max length.";
       return;
     }
-
-    results.push(id);
   }
 
   results.forEach((id) => {
