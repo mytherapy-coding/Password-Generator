@@ -270,7 +270,7 @@ function generateWordsId(opts) {
     if (opts.addDigits) {
       let d = "";
       for (let i = 0; i < opts.digitsCount; i++) d += pick(DIGITS);
-      id += sep + d;
+      id += d;  // Always append digits directly, no separator
     }
 
     id = id.toLowerCase().replace(/[^a-z0-9_.-]/g, "");
