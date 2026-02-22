@@ -30,6 +30,7 @@
           <option value="strong">Strong (custom sets)</option>
           <option value="easyWrite">Easy to write</option>
           <option value="easySay">Easy to say</option>
+          <option value="passphrase">Passphrase (Diceware)</option>
         </select>
       </label>
 
@@ -73,6 +74,30 @@
         <label><input type="checkbox" id="easySayAddDigit" checked /> Add one digit at end</label>
         <div class="info" style="font-size:0.9em; margin-top:4px;">
           Generates pronounceable CVC syllables (consonant-vowel-consonant)
+        </div>
+      </div>
+
+      <div id="passphraseModeControls" style="display:none;">
+        <label>Word count:
+          <select id="passphraseWordCount">
+            <option value="4">4 words</option>
+            <option value="5">5 words</option>
+            <option value="6" selected>6 words</option>
+            <option value="7">7 words</option>
+            <option value="8">8 words</option>
+          </select>
+        </label>
+        <label>Separator:
+          <select id="passphraseSeparator">
+            <option value=" " selected>space</option>
+            <option value="-">-</option>
+            <option value="_">_</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="passphraseCapitalize" /> Capitalize one random word</label>
+        <label><input type="checkbox" id="passphraseAddDigits" /> Add digits at the end</label>
+        <div class="info" style="font-size:0.9em; margin-top:4px;">
+          Uses EFF long wordlist for Diceware-style passphrases. Each word is chosen uniformly at random.
         </div>
       </div>
 
@@ -210,6 +235,7 @@
 
   <script src="data/adjs.js"></script>
   <script src="data/nouns.js"></script>
+  <script src="data/diceware_words.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

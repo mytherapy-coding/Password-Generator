@@ -44,6 +44,58 @@ Strength levels:
 - **Medium**: 45–70 bits  
 - **Strong**: 70+ bits
 
+## 🔑 Passphrase Generator (Diceware-style)
+
+The generator includes a **Passphrase (Diceware)** mode that creates secure, memorable passphrases using a fixed word list and uniform cryptographic randomness.
+
+### What is Diceware?
+
+Diceware is a method for creating strong passphrases by:
+- Selecting multiple random words from a fixed list
+- Each word is chosen uniformly at random (no patterns or weighting)
+- Security comes from entropy, not complexity or symbols
+- Widely recommended for master passwords and other high-security scenarios where memorability matters
+
+### Word List
+
+This generator uses the **EFF Long Wordlist** published by the Electronic Frontier Foundation:
+- **Source**: https://www.eff.org/dice
+- **Size**: 7,776 words
+- **Design**: Curated to avoid offensive, ambiguous, or hard-to-type words
+- **Purpose**: Designed specifically for Diceware-style passphrases
+
+### Entropy Calculation
+
+For Diceware passphrases, entropy is calculated as:
+
+```
+entropy = wordCount × log₂(wordListSize)
+```
+
+Where:
+- **wordCount** = number of words in the passphrase (4–8)
+- **wordListSize** = size of the word list (7,776 for EFF Long Wordlist)
+
+**Example**: A 6-word passphrase from a 7,776-word list:
+- Entropy = 6 × log₂(7,776) ≈ 6 × 12.92 ≈ **77.5 bits**
+
+This provides strong security while remaining memorable.
+
+### Optional Enhancements
+
+The generator supports optional enhancements that add minimal entropy:
+- **Capitalize one random word**: Adds log₂(wordCount) bits
+- **Add digits at the end (2 digits)**: Adds log₂(100) ≈ 6.64 bits
+
+### Why Not Use UserID Word Lists?
+
+The UserID generator uses broader word lists (adjectives and nouns) that are:
+- Not designed for uniform security guarantees
+- May contain ambiguous or hard-to-type words
+- Not optimized for passphrase generation
+
+Diceware word lists are specifically curated for security and memorability, making them the correct choice for passphrase generation.
+
 ## ⏱️ Password Crack Time Estimation
 
 The generator includes realistic offline password crack-time estimation based on:

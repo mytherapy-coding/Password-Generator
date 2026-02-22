@@ -173,6 +173,42 @@ function generateEasySayPassword(syllableCount, addDigit) {
 }
 
 /* ------------------------------
+   PASSPHRASE (DICEWARE) GENERATOR
+------------------------------ */
+function generatePassphrase(wordCount, separator, capitalize, addDigits) {
+  // Check if wordlist is available
+  if (typeof DICEWARE_WORDS === "undefined" || !DICEWARE_WORDS || DICEWARE_WORDS.length === 0) {
+    return null;
+  }
+  
+  const words = [];
+  
+  // Pick words uniformly at random using crypto.getRandomValues
+  for (let i = 0; i < wordCount; i++) {
+    const word = DICEWARE_WORDS[randomInt(DICEWARE_WORDS.length)];
+    words.push(word);
+  }
+  
+  // Capitalize one random word if requested
+  if (capitalize && words.length > 0) {
+    const capIndex = randomInt(words.length);
+    words[capIndex] = words[capIndex].charAt(0).toUpperCase() + words[capIndex].slice(1);
+  }
+  
+  // Join words with separator
+  let passphrase = words.join(separator);
+  
+  // Add digits at the end if requested (2 digits)
+  if (addDigits) {
+    const digit1 = pick(DIGITS);
+    const digit2 = pick(DIGITS);
+    passphrase += digit1 + digit2;
+  }
+  
+  return passphrase;
+}
+
+/* ------------------------------
    USER ID — CVC MODE
 ------------------------------ */
 function generateCvcStem(n) {
@@ -382,6 +418,11 @@ const easyWriteLength = document.getElementById("easyWriteLength");
 const easySayModeControls = document.getElementById("easySayModeControls");
 const easySaySyllables = document.getElementById("easySaySyllables");
 const easySayAddDigit = document.getElementById("easySayAddDigit");
+const passphraseModeControls = document.getElementById("passphraseModeControls");
+const passphraseWordCount = document.getElementById("passphraseWordCount");
+const passphraseSeparator = document.getElementById("passphraseSeparator");
+const passphraseCapitalize = document.getElementById("passphraseCapitalize");
+const passphraseAddDigits = document.getElementById("passphraseAddDigits");
 
 const passwordInput = document.getElementById("password");
 const strengthLabelEl = document.getElementById("strengthLabel");
@@ -439,6 +480,7 @@ function updatePasswordModeUI() {
   strongModeControls.style.display = (mode === "strong" && !isIcloud) ? "" : "none";
   easyWriteModeControls.style.display = (mode === "easyWrite" && !isIcloud) ? "" : "none";
   easySayModeControls.style.display = (mode === "easySay" && !isIcloud) ? "" : "none";
+  passphraseModeControls.style.display = (mode === "passphrase" && !isIcloud) ? "" : "none";
   
   // Disable all controls if iCloud preset is active
   if (isIcloud) {
@@ -451,6 +493,10 @@ function updatePasswordModeUI() {
     easyWriteLength.disabled = true;
     easySaySyllables.disabled = true;
     easySayAddDigit.disabled = true;
+    passphraseWordCount.disabled = true;
+    passphraseSeparator.disabled = true;
+    passphraseCapitalize.disabled = true;
+    passphraseAddDigits.disabled = true;
     passwordMode.disabled = true;
     presetInfo.textContent = "iCloud preset is active.";
   } else {
@@ -463,6 +509,10 @@ function updatePasswordModeUI() {
     easyWriteLength.disabled = false;
     easySaySyllables.disabled = false;
     easySayAddDigit.disabled = false;
+    passphraseWordCount.disabled = false;
+    passphraseSeparator.disabled = false;
+    passphraseCapitalize.disabled = false;
+    passphraseAddDigits.disabled = false;
     passwordMode.disabled = false;
     presetInfo.textContent = "";
   }
@@ -553,6 +603,36 @@ function updateCrackTimeFromSettings() {
       entropyBits += Math.log2(UNAMBIGUOUS_DIGITS.length);
     }
     
+  } else if (mode === "passphrase") {
+    const wordCount = Number(passphraseWordCount.value);
+    if (wordCount < 4 || wordCount > 8) {
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+    
+    // Check if wordlist is available
+    if (typeof DICEWARE_WORDS === "undefined" || !DICEWARE_WORDS || DICEWARE_WORDS.length === 0) {
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+    
+    const capitalize = passphraseCapitalize.checked;
+    const addDigits = passphraseAddDigits.checked;
+    
+    // Calculate entropy: wordCount × log2(wordListSize)
+    const wordListSize = DICEWARE_WORDS.length;
+    entropyBits = wordCount * Math.log2(wordListSize);
+    
+    // Add entropy for capitalization (if enabled)
+    if (capitalize) {
+      entropyBits += Math.log2(wordCount);
+    }
+    
+    // Add entropy for digits (2 digits = 100 possibilities)
+    if (addDigits) {
+      entropyBits += Math.log2(100);
+    }
+    
   } else {
     // Strong mode
     const length = Number(lengthInput.value);
@@ -609,7 +689,11 @@ function savePasswordSettings() {
     icloudPreset: icloudPresetCheckbox.checked,
     easyWriteLength: easyWriteLength.value,
     easySaySyllables: easySaySyllables.value,
-    easySayAddDigit: easySayAddDigit.checked
+    easySayAddDigit: easySayAddDigit.checked,
+    passphraseWordCount: passphraseWordCount.value,
+    passphraseSeparator: passphraseSeparator.value,
+    passphraseCapitalize: passphraseCapitalize.checked,
+    passphraseAddDigits: passphraseAddDigits.checked
   };
   localStorage.setItem("passwordSettings", JSON.stringify(settings));
 }
@@ -630,6 +714,10 @@ function restorePasswordSettings() {
     easyWriteLength.value = s.easyWriteLength ?? "16";
     easySaySyllables.value = s.easySaySyllables ?? "5";
     easySayAddDigit.checked = s.easySayAddDigit ?? true;
+    passphraseWordCount.value = s.passphraseWordCount ?? "6";
+    passphraseSeparator.value = s.passphraseSeparator ?? " ";
+    passphraseCapitalize.checked = s.passphraseCapitalize ?? false;
+    passphraseAddDigits.checked = s.passphraseAddDigits ?? false;
     // Don't call updatePasswordModeUI here - it will be called after all settings are restored
   } catch (_) {}
 }
@@ -770,6 +858,42 @@ function handleGeneratePassword() {
     entropyBits = syllableCount * syllableEntropy;
     if (addDigit) {
       entropyBits += Math.log2(UNAMBIGUOUS_DIGITS.length);
+    }
+    
+  } else if (mode === "passphrase") {
+    // Passphrase (Diceware) mode
+    const wordCount = Number(passphraseWordCount.value);
+    const separator = passphraseSeparator.value;
+    const capitalize = passphraseCapitalize.checked;
+    const addDigits = passphraseAddDigits.checked;
+    
+    // Check if wordlist is available
+    if (typeof DICEWARE_WORDS === "undefined" || !DICEWARE_WORDS || DICEWARE_WORDS.length === 0) {
+      lengthError.textContent = "Diceware word list not loaded. Please ensure data/diceware_words.js is included.";
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+    
+    pwd = generatePassphrase(wordCount, separator, capitalize, addDigits);
+    if (!pwd) {
+      lengthError.textContent = "Failed to generate passphrase.";
+      crackTimeContainer.style.display = "none";
+      return;
+    }
+    
+    // Calculate entropy: wordCount × log2(wordListSize)
+    // Capitalization and digits add minimal entropy, but we include them for accuracy
+    const wordListSize = DICEWARE_WORDS.length;
+    entropyBits = wordCount * Math.log2(wordListSize);
+    
+    // Add entropy for capitalization (if enabled, one word is capitalized)
+    if (capitalize) {
+      entropyBits += Math.log2(wordCount); // Which word to capitalize
+    }
+    
+    // Add entropy for digits (2 digits = 100 possibilities)
+    if (addDigits) {
+      entropyBits += Math.log2(100); // 2 digits = 10^2 = 100
     }
     
   } else {
@@ -943,6 +1067,8 @@ function buildPasswordShareUrl() {
     mode = "easywrite";
   } else if (mode === "easySay") {
     mode = "easysay";
+  } else if (mode === "passphrase") {
+    mode = "passphrase";
   }
   p.set("mode", mode);
   
@@ -953,6 +1079,16 @@ function buildPasswordShareUrl() {
     // Syllable count determines length, but we store syllables
     p.set("sy", String(easySaySyllables.value));
     p.set("dig", easySayAddDigit.checked ? "1" : "0");
+  } else if (mode === "passphrase") {
+    p.set("wc", String(passphraseWordCount.value));
+    const sep = passphraseSeparator.value;
+    if (sep === " ") {
+      p.set("sep", "space");
+    } else {
+      p.set("sep", sep);
+    }
+    p.set("cap", passphraseCapitalize.checked ? "1" : "0");
+    p.set("dig", passphraseAddDigits.checked ? "1" : "0");
   } else if (mode !== "icloud") {
     // Strong mode
     p.set("len", String(lengthInput.value));
@@ -1067,6 +1203,8 @@ function restoreSettingsFromURL() {
         passwordMode.value = "easyWrite";
       } else if (mode === "easysay") {
         passwordMode.value = "easySay";
+      } else if (mode === "passphrase") {
+        passwordMode.value = "passphrase";
       } else if (mode === "strong") {
         passwordMode.value = "strong";
       }
@@ -1080,6 +1218,17 @@ function restoreSettingsFromURL() {
       const sy = getInt(params, "sy", 4, 6, 5);
       easySaySyllables.value = String(sy);
       easySayAddDigit.checked = getBool(params, "dig", true);
+    } else if (mode === "passphrase") {
+      const wc = getInt(params, "wc", 4, 8, 6);
+      passphraseWordCount.value = String(wc);
+      const sep = params.get("sep");
+      if (sep === "space") {
+        passphraseSeparator.value = " ";
+      } else if (sep && ["-", "_"].includes(sep)) {
+        passphraseSeparator.value = sep;
+      }
+      passphraseCapitalize.checked = getBool(params, "cap", false);
+      passphraseAddDigits.checked = getBool(params, "dig", false);
     } else if (mode !== "icloud") {
       // Strong mode
       const len = getInt(params, "len", 4, 64, 16);
@@ -1314,6 +1463,27 @@ easySaySyllables.addEventListener("change", () => {
 });
 
 easySayAddDigit.addEventListener("change", () => {
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
+// Passphrase controls
+passphraseWordCount.addEventListener("change", () => {
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
+passphraseSeparator.addEventListener("change", () => {
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
+passphraseCapitalize.addEventListener("change", () => {
+  savePasswordSettings();
+  updateCrackTimeFromSettings();
+});
+
+passphraseAddDigits.addEventListener("change", () => {
   savePasswordSettings();
   updateCrackTimeFromSettings();
 });
