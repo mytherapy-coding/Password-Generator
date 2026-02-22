@@ -409,7 +409,7 @@ const uppercaseCheckbox = document.getElementById("uppercase");
 const digitsCheckbox = document.getElementById("digits");
 const symbolsCheckbox = document.getElementById("symbols");
 const customSymbolsInput = document.getElementById("customSymbols");
-const icloudPresetCheckbox = document.getElementById("icloudPreset");
+// iCloud preset checkbox removed - now using passwordMode.value === "icloud"
 
 // Mode-specific controls
 const strongModeControls = document.getElementById("strongModeControls");
@@ -431,7 +431,7 @@ const strengthBarEl = document.getElementById("strengthBar");
 const lengthError = document.getElementById("lengthError");
 const symbolError = document.getElementById("symbolError");
 const copyError = document.getElementById("copyError");
-const presetInfo = document.getElementById("presetInfo");
+// presetInfo removed - no longer needed
 
 const generateBtn = document.getElementById("generate");
 const clearBtn = document.getElementById("clear");
@@ -474,15 +474,15 @@ const resetUserIdSettingsBtn = document.getElementById("resetUserIdSettings");
 ------------------------------ */
 function updatePasswordModeUI() {
   const mode = passwordMode.value;
-  const isIcloud = icloudPresetCheckbox.checked;
+  const isIcloud = mode === "icloud";
   
   // Show/hide mode-specific controls
-  strongModeControls.style.display = (mode === "strong" && !isIcloud) ? "" : "none";
-  easyWriteModeControls.style.display = (mode === "easyWrite" && !isIcloud) ? "" : "none";
-  easySayModeControls.style.display = (mode === "easySay" && !isIcloud) ? "" : "none";
-  passphraseModeControls.style.display = (mode === "passphrase" && !isIcloud) ? "" : "none";
+  strongModeControls.style.display = (mode === "strong") ? "" : "none";
+  easyWriteModeControls.style.display = (mode === "easyWrite") ? "" : "none";
+  easySayModeControls.style.display = (mode === "easySay") ? "" : "none";
+  passphraseModeControls.style.display = (mode === "passphrase") ? "" : "none";
   
-  // Disable all controls if iCloud preset is active
+  // Disable all controls if iCloud mode is active
   if (isIcloud) {
     lengthInput.disabled = true;
     lowercaseCheckbox.disabled = true;
@@ -497,8 +497,6 @@ function updatePasswordModeUI() {
     passphraseSeparator.disabled = true;
     passphraseCapitalize.disabled = true;
     passphraseAddDigits.disabled = true;
-    passwordMode.disabled = true;
-    presetInfo.textContent = "iCloud preset is active.";
   } else {
     lengthInput.disabled = false;
     lowercaseCheckbox.disabled = false;
@@ -513,8 +511,6 @@ function updatePasswordModeUI() {
     passphraseSeparator.disabled = false;
     passphraseCapitalize.disabled = false;
     passphraseAddDigits.disabled = false;
-    passwordMode.disabled = false;
-    presetInfo.textContent = "";
   }
 }
 
@@ -573,9 +569,10 @@ function updateCrackTimeFromSettings() {
     return;
   }
 
-  // iCloud preset: fixed entropy
-  if (icloudPresetCheckbox.checked) {
-    updateCrackTimeUI(71);
+  // iCloud mode: fixed entropy
+  if (passwordMode.value === "icloud") {
+    const entropyBits = 18 * Math.log2(26) + 1 * Math.log2(10);
+    updateCrackTimeUI(entropyBits);
     return;
   }
 
@@ -686,7 +683,6 @@ function savePasswordSettings() {
     digits: digitsCheckbox.checked,
     symbols: symbolsCheckbox.checked,
     customSymbols: customSymbolsInput.value,
-    icloudPreset: icloudPresetCheckbox.checked,
     easyWriteLength: easyWriteLength.value,
     easySaySyllables: easySaySyllables.value,
     easySayAddDigit: easySayAddDigit.checked,
@@ -710,7 +706,6 @@ function restorePasswordSettings() {
     digitsCheckbox.checked = s.digits ?? true;
     symbolsCheckbox.checked = s.symbols ?? false;
     customSymbolsInput.value = s.customSymbols ?? "";
-    icloudPresetCheckbox.checked = s.icloudPreset ?? false;
     easyWriteLength.value = s.easyWriteLength ?? "16";
     easySaySyllables.value = s.easySaySyllables ?? "5";
     easySayAddDigit.checked = s.easySayAddDigit ?? true;
@@ -809,8 +804,8 @@ function handleGeneratePassword() {
   copyError.textContent = "";
   crackTimeContainer.style.display = "none";
 
-  // iCloud preset takes precedence
-  if (icloudPresetCheckbox.checked) {
+  // iCloud mode
+  if (passwordMode.value === "icloud") {
     const pwd = generateIcloudPassword();
     passwordInput.value = pwd;
     
@@ -1064,9 +1059,7 @@ function buildPasswordShareUrl() {
   
   // Determine mode
   let mode = passwordMode.value;
-  if (icloudPresetCheckbox.checked) {
-    mode = "icloud";
-  } else if (mode === "easyWrite") {
+  if (mode === "easyWrite") {
     mode = "easywrite";
   } else if (mode === "easySay") {
     mode = "easysay";
@@ -1201,7 +1194,7 @@ function restoreSettingsFromURL() {
     const mode = params.get("mode");
     if (mode) {
       if (mode === "icloud") {
-        icloudPresetCheckbox.checked = true;
+        passwordMode.value = "icloud";
       } else if (mode === "easywrite") {
         passwordMode.value = "easyWrite";
       } else if (mode === "easysay") {
@@ -1448,11 +1441,7 @@ passwordMode.addEventListener("change", () => {
   updateCrackTimeFromSettings();
 });
 
-icloudPresetCheckbox.addEventListener("change", () => {
-  updatePasswordModeUI();
-  savePasswordSettings();
-  updateCrackTimeFromSettings();
-});
+// iCloud preset checkbox removed - handled by passwordMode change event
 
 // Easy mode controls
 easyWriteLength.addEventListener("change", () => {
