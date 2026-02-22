@@ -813,11 +813,14 @@ function handleGeneratePassword() {
   if (icloudPresetCheckbox.checked) {
     const pwd = generateIcloudPassword();
     passwordInput.value = pwd;
-    strengthLabelEl.textContent = "";
-    strengthBarEl.style.background = "green";
+    
+    // iCloud: 18 letters + 1 digit, pool ~26 letters + 10 digits
+    // Format: 3 chunks of 6 letters (CVC-CVC) + 1 digit + 1 uppercase
+    // Entropy: 18 letters from 26 lowercase + 1 digit from 10
+    const entropyBits = 18 * Math.log2(26) + 1 * Math.log2(10);
+    strengthLabelEl.textContent = entropyBits < 45 ? "Weak" : entropyBits < 70 ? "Medium" : "Strong";
+    strengthBarEl.style.background = entropyBits < 45 ? "red" : entropyBits < 70 ? "orange" : "green";
 
-    // iCloud preset: fixed entropy estimate (~71 bits)
-    const entropyBits = 71;
     updateCrackTimeUI(entropyBits);
     return;
   }
