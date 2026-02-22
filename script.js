@@ -52,9 +52,13 @@ let wordsLoaded = false;
    RANDOM HELPERS
 ------------------------------ */
 function randomInt(max) {
+  if (max <= 0) return 0;
   const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return arr[0] % max;
+  const threshold = 0xFFFFFFFF - (0xFFFFFFFF % max);
+  for (;;) {
+    crypto.getRandomValues(arr);
+    if (arr[0] < threshold) return arr[0] % max;
+  }
 }
 
 function pick(pool) {
