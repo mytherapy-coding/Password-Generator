@@ -10,8 +10,16 @@ document.querySelectorAll(".tab").forEach((tab) => {
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
 
+    const tabId = tab.dataset.tab;
     tab.classList.add("active");
-    document.getElementById(tab.dataset.tab).classList.add("active");
+    document.getElementById(tabId).classList.add("active");
+    
+    // Save active tab to localStorage
+    try {
+      localStorage.setItem("activeTab", tabId);
+    } catch {
+      // ignore
+    }
   });
 });
 
@@ -1547,6 +1555,20 @@ function restoreCrackHardwareSelection() {
   }
 }
 
+function restoreActiveTab() {
+  try {
+    const savedTab = localStorage.getItem("activeTab");
+    if (savedTab === "userIdTab" || savedTab === "passwordTab") {
+      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+      document.querySelector(`[data-tab="${savedTab}"]`).classList.add("active");
+      document.getElementById(savedTab).classList.add("active");
+    }
+  } catch {
+    // ignore
+  }
+}
+
 // Check for URL parameters first (share link)
 const urlParamsRestored = restoreSettingsFromURL();
 
@@ -1555,6 +1577,7 @@ if (!urlParamsRestored) {
   restorePasswordSettings();
   restoreUserIdSettings();
   restoreCrackHardwareSelection();
+  restoreActiveTab();
   // Update UI after all settings are restored
   updatePasswordModeUI();
   updateUserIdModeUI();
@@ -1564,6 +1587,7 @@ if (!urlParamsRestored) {
   if (!urlParams.has("hw")) {
     restoreCrackHardwareSelection();
   }
+  // Active tab is already set by restoreSettingsFromURL (it switches tabs)
   // updatePasswordModeUI is already called in restoreSettingsFromURL
 }
 
