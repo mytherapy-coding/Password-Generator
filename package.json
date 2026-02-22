@@ -1,0 +1,22 @@
+{
+  "name": "password-gen",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Secure password and user ID generator with entropy-based crack-time estimation",
+  "bin": {
+    "securegen": "./cli/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "password",
+    "generator",
+    "security",
+    "entropy",
+    "diceware",
+    "passphrase"
+  ],
+  "author": "",
+  "license": "MIT"
+}
