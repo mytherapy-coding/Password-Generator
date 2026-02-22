@@ -57,6 +57,9 @@ button {
   padding: 10px 14px;
   margin: 6px 0;
   cursor: pointer;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
 }
 
 .error {
@@ -95,7 +98,9 @@ button {
   display: block;
 }
 
-.btn-reset-settings {
+button.btn-secondary {
   margin-top: 12px;
   background: #64748b;
+  color: white;
+  border-color: #64748b;
 }
