@@ -961,7 +961,7 @@ function handleGenerateUserIds() {
       return;
     }
     if (WORD_ADJECTIVES.length === 0 || WORD_NOUNS.length === 0) {
-      uidError.textContent = "Word lists are empty. Please check data/adjs.json and data/nouns.json files.";
+      uidError.textContent = "Word lists are empty. Please check data/adjs.js and data/nouns.js files.";
       return;
     }
   }
