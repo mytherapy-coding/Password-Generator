@@ -84,3 +84,18 @@ button {
   border-radius: 4px;
   font-family: monospace;
 }
+
+.uid-words-controls,
+.uid-cvc-controls {
+  display: none;
+}
+
+.uid-words-controls.visible,
+.uid-cvc-controls.visible {
+  display: block;
+}
+
+.btn-reset-settings {
+  margin-top: 12px;
+  background: #64748b;
+}

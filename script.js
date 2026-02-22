@@ -525,8 +525,8 @@ function updateIcloudUIState() {
 
 function updateUserIdModeUI() {
   const mode = uidMode.value;
-  uidCvcControls.style.display = mode === "cvc" ? "" : "none";
-  uidWordsControls.style.display = mode === "words" ? "" : "none";
+  uidCvcControls.classList.toggle("visible", mode === "cvc");
+  uidWordsControls.classList.toggle("visible", mode === "words");
 }
 
 /* Crack-time UI update */
