@@ -35,7 +35,7 @@ export interface AppElements {
   
   // Buttons
   generateBtn?: HTMLButtonElement | null;
-  clearBtn?: HTMLButtonElement | null;
+  resetPasswordSettingsBtn?: HTMLButtonElement | null;
   copyBtn?: HTMLButtonElement | null;
   shareBtn?: HTMLButtonElement | null;
   

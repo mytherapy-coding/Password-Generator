@@ -46,7 +46,7 @@ function initElements(): AppElements {
     
     // Buttons
     generateBtn: document.getElementById("generate") as HTMLButtonElement | null,
-    clearBtn: document.getElementById("clear") as HTMLButtonElement | null,
+    resetPasswordSettingsBtn: document.getElementById("resetPasswordSettings") as HTMLButtonElement | null,
     copyBtn: document.getElementById("copy") as HTMLButtonElement | null,
     shareBtn: document.getElementById("share") as HTMLButtonElement | null,
     
@@ -150,14 +150,14 @@ function setupEventListeners(elements: AppElements, wordLists: WordLists): void 
     console.error("Generate button not found!");
   }
 
-  if (elements.clearBtn) {
-    elements.clearBtn.addEventListener("click", (e) => {
+  if (elements.resetPasswordSettingsBtn) {
+    elements.resetPasswordSettingsBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       clearPasswordUI(elements);
     });
   } else {
-    console.error("Clear button not found!");
+    console.error("Reset Settings button not found!");
   }
 
   if (elements.copyBtn) {

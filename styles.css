@@ -99,8 +99,12 @@ button {
 }
 
 button.btn-secondary {
-  margin-top: 12px;
-  background: #64748b;
+  background: #374151;
   color: white;
-  border-color: #64748b;
+  border-color: #374151;
+}
+
+button.btn-secondary:hover {
+  background: #4b5563;
+  border-color: #4b5563;
 }
