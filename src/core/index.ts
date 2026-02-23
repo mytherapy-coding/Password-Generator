@@ -1,5 +1,5 @@
 // core/index.ts
-export { generatePassword } from "./password.js";
+export { generatePassword, type PasswordGenerationConfig } from "./password.js";
 export { generateDicewarePassphrase } from "./diceware.js";
 export { estimateCrackTimeSeconds as estimateCrackTime } from "./crackTime.js";
 export { generateIcloudPassword } from "./icloud.js";

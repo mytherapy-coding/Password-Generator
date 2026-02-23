@@ -1,8 +1,14 @@
 import { calculateEntropyBits } from "./entropy.js";
 import { estimateCrackTimeSeconds, CRACK_HARDWARE_PROFILES } from "./crackTime.js";
-import type { PasswordConfig, PasswordResult, RandomIntFunction } from "./types.js";
+import type { PasswordResult, RandomIntFunction } from "./types.js";
 
-export function generatePassword(config: PasswordConfig, randomInt: RandomIntFunction): PasswordResult {
+// Internal config for password generation (with charset)
+export interface PasswordGenerationConfig {
+  length: number;
+  charset: string;
+}
+
+export function generatePassword(config: PasswordGenerationConfig, randomInt: RandomIntFunction): PasswordResult {
   let result = "";
 
   for (let i = 0; i < config.length; i++) {

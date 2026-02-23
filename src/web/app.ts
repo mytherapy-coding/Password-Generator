@@ -171,7 +171,7 @@ export function handleGeneratePassword(
       } else {
         const val = validateSymbolsInput(elements.customSymbolsInput.value);
         if (!val.ok) {
-          if (elements.symbolError) elements.symbolError.textContent = val.msg;
+          if (elements.symbolError) elements.symbolError.textContent = val.msg ?? "";
           if (elements.crackTimeContainer) elements.crackTimeContainer.style.display = "none";
           return;
         }
@@ -188,7 +188,7 @@ export function handleGeneratePassword(
     });
 
     if (!charset.ok) {
-      if (elements.symbolError) elements.symbolError.textContent = charset.msg;
+      if (elements.symbolError) elements.symbolError.textContent = charset.msg ?? "";
       if (elements.crackTimeContainer) elements.crackTimeContainer.style.display = "none";
       return;
     }
@@ -300,7 +300,9 @@ export function handleGenerateUserIds(elements: AppElements, wordLists: WordList
 
       row.appendChild(span);
       row.appendChild(btn);
-      elements.uidResults.appendChild(row);
+      if (elements.uidResults) {
+        elements.uidResults.appendChild(row);
+      }
     });
   }
 }

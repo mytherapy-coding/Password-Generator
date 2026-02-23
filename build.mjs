@@ -19,11 +19,11 @@ async function buildWeb() {
   console.log("Building web app...");
   
   await build({
-    entryPoints: ["js/init.ts"],
+    entryPoints: ["src/web/main.ts"],
     bundle: true,
-    outdir: "dist",
+    outfile: "dist/script.js",
     format: "esm",
-    target: "es2022",
+    target: "es2020",
     platform: "browser",
     sourcemap: !isProduction,
     minify: isProduction,
@@ -32,15 +32,25 @@ async function buildWeb() {
     }
   });
   
-  // Copy and update HTML - change script reference to bundled JS
+  // Copy and update HTML - change script reference to script.js and CSS to style.css
   if (!existsSync("dist")) mkdirSync("dist", { recursive: true });
-  const htmlContent = readFileSync("index.html", "utf8");
-  const updatedHtml = htmlContent.replace(
-    /<script type="module" src="\.\/js\/init\.js"><\/script>/,
-    '<script type="module" src="./init.js"></script>'
+  let htmlContent = readFileSync("index.html", "utf8");
+  htmlContent = htmlContent.replace(
+    /<script type="module" src="[^"]*"><\/script>/,
+    '<script type="module" src="./script.js"></script>'
   );
-  writeFileSync("dist/index.html", updatedHtml);
-  copyFileSync("styles.css", "dist/styles.css");
+  htmlContent = htmlContent.replace(
+    /href="\.\/styles\.css"/,
+    'href="./style.css"'
+  );
+  writeFileSync("dist/index.html", htmlContent);
+  
+  // Copy style.css (note: keeping styles.css name for now, but copying as style.css per requirements)
+  if (existsSync("styles.css")) {
+    copyFileSync("styles.css", "dist/style.css");
+  } else if (existsSync("style.css")) {
+    copyFileSync("style.css", "dist/style.css");
+  }
   
   // Copy data files
   if (!existsSync("dist/data")) mkdirSync("dist/data", { recursive: true });
@@ -62,7 +72,7 @@ async function buildCLI() {
   await build({
     entryPoints: ["cli/index.ts"],
     bundle: true,
-    outdir: "dist/cli",
+    outfile: "dist/cli/index.js",
     format: "esm",
     target: "node18",
     platform: "node",
@@ -73,6 +83,10 @@ async function buildCLI() {
     }
   });
   
+  // Make CLI executable
+  const { chmodSync } = await import("fs");
+  chmodSync("dist/cli/index.js", 0o755);
+  
   console.log("CLI built successfully!");
 }
 
@@ -82,9 +96,9 @@ async function buildCore() {
   // Core is used by both web and CLI, so we build it separately
   // Web will bundle it, CLI will use it directly
   await build({
-    entryPoints: ["core/index.ts"],
+    entryPoints: ["src/core/index.ts"],
     bundle: false,
-    outdir: "dist/core",
+    outdir: "dist/src/core",
     format: "esm",
     target: "es2022",
     platform: "neutral",
@@ -117,9 +131,10 @@ async function main() {
     console.log("\n✅ Build complete!");
     console.log("📦 Output: dist/");
     console.log("   - dist/index.html (web app)");
-    console.log("   - dist/init.js (bundled web JS)");
+    console.log("   - dist/script.js (bundled web JS)");
+    console.log("   - dist/style.css");
+    console.log("   - dist/data/ (word lists)");
     console.log("   - dist/cli/index.js (CLI executable)");
-    console.log("   - dist/core/ (core library)");
     
   } catch (error) {
     console.error("Build failed:", error);

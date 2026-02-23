@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import fs from "node:fs";
 import { parseArgs, type ParsedArgs } from "./parseArgs.js";
 import { formatText, formatJSON } from "./output.js";
@@ -17,8 +15,8 @@ import {
   calculateEntropyBits,
   estimateCrackTimeSeconds,
   CRACK_HARDWARE_PROFILES
-} from "../core/index.js";
-import type { PasswordResult } from "../core/types.js";
+} from "../src/core/index.js";
+import type { PasswordResult } from "../src/core/types.js";
 
 // Load word lists
 const dicewareWords: string[] = JSON.parse(

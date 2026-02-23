@@ -13,6 +13,8 @@ const PORT = 8000;
 const mimeTypes = {
   ".html": "text/html",
   ".js": "text/javascript",
+  ".mjs": "text/javascript",
+  ".ts": "text/typescript",
   ".css": "text/css",
   ".json": "application/json",
   ".png": "image/png",
@@ -22,9 +24,13 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = "." + req.url;
-  if (filePath === "./") {
-    filePath = "./index.html";
+  // Serve from dist/ if it exists (built version), otherwise serve from root (development)
+  const distExists = fs.existsSync("./dist");
+  const basePath = distExists ? "./dist" : ".";
+  
+  let filePath = basePath + req.url;
+  if (filePath === basePath + "/" || filePath === basePath) {
+    filePath = basePath + "/index.html";
   }
 
   const extname = String(path.extname(filePath)).toLowerCase();
@@ -47,6 +53,14 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
+  const distExists = fs.existsSync("./dist");
   console.log(`Server running at http://localhost:${PORT}/`);
+  if (distExists) {
+    console.log("✓ Serving from dist/ (built version)");
+  } else {
+    console.log("⚠ WARNING: dist/ does not exist!");
+    console.log("  Browsers cannot execute TypeScript files.");
+    console.log("  Run 'npm run build' to compile TypeScript to JavaScript.");
+  }
   console.log("Press Ctrl+C to stop the server");
 });

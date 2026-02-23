@@ -1,5 +1,5 @@
-import { formatCrackTime, CRACK_HARDWARE_PROFILES } from "../core/index.js";
-import type { PasswordResult } from "../core/types.js";
+import { formatCrackTime, CRACK_HARDWARE_PROFILES } from "../src/core/index.js";
+import type { PasswordResult } from "../src/core/types.js";
 
 interface ResultWithValue {
   value: string;
