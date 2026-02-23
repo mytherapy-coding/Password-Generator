@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Password & User ID Generator</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>Password Generator</title>
 </head>
 
 <body>
@@ -99,12 +99,12 @@
         </div>
       </div>
 
-      <button id="generate">Generate</button>
-      <button id="clear">Clear</button>
-      <button id="share">Share</button>
+      <button type="button" id="generate">Generate</button>
+      <button type="button" id="clear">Clear</button>
+      <button type="button" id="share">Share</button>
 
       <input type="text" id="password" readonly />
-      <button id="copy">Copy</button>
+      <button type="button" id="copy">Copy</button>
       <div id="copyError" class="error"></div>
 
       <div id="strengthLabel"></div>
@@ -219,10 +219,10 @@
 
       <div id="uidError" class="error"></div>
 
-      <button id="uidGenerateBtn">Generate User IDs</button>
-      <button id="uidShare">Share</button>
+      <button type="button" id="uidGenerateBtn">Generate User IDs</button>
+      <button type="button" id="uidShare">Share</button>
 
-      <button id="resetUserIdSettings" class="btn-secondary">
+      <button type="button" id="resetUserIdSettings" class="btn-secondary">
         Reset Settings
       </button>
 
@@ -231,9 +231,6 @@
 
   </div>
 
-  <script src="data/adjs.js"></script>
-  <script src="data/nouns.js"></script>
-  <script src="data/diceware_words.js"></script>
-  <script src="script.js"></script>
+  <script type="module" src="./js/init.js"></script>
 </body>
 </html>

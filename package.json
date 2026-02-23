@@ -1,0 +1,24 @@
+{
+  "name": "password-gen",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Secure password and user ID generator with entropy analysis",
+  "main": "core/index.js",
+  "bin": {
+    "securegen": "./cli/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "password",
+    "generator",
+    "security",
+    "diceware",
+    "passphrase"
+  ],
+  "author": "",
+  "license": "MIT"
+}
