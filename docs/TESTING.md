@@ -123,7 +123,7 @@ node dist/cli/index.js pwd --len 16 --json
 - [ ] Toast notifications appear when copying
 - [ ] Error messages display correctly
 - [ ] Generate button enables/disables based on validation
-- [ ] Clear button resets UI correctly
+- [ ] Reset Settings button resets UI correctly
 
 ### Data Loading
 
