@@ -1,128 +1,171 @@
 # Testing Guide
 
-## Quick Test Commands
+## Quick Test
 
-### 1. Type Check
+Run the automated test script:
+
 ```bash
-npm run typecheck
+chmod +x test-app.sh
+./test-app.sh
 ```
-Should show: **0 errors**
 
-### 2. Build
+## Manual Testing Steps
+
+### 1. Build and Typecheck
+
 ```bash
+# Typecheck (verify TypeScript)
+npm run typecheck
+
+# Build the project
 npm run build
 ```
-Should create `dist/` folder with:
-- `dist/index.html`
-- `dist/script.js`
-- `dist/style.css`
-- `dist/data/` (word lists)
-- `dist/cli/index.js`
+
+### 2. Test Web App Locally
+
+```bash
+# Start local server
+npm run serve:dist
+```
+
+Then open the URL shown (usually `http://localhost:3000`) in your browser.
 
 ### 3. Test CLI Tool
 
-#### Basic password:
 ```bash
-./dist/cli/index.js pwd --len 16
+# Generate a password
+node dist/cli/index.js pwd --len 16 --mode strong
+
+# Generate a passphrase
+node dist/cli/index.js passphrase --words 6 --sep "-"
+
+# Generate iCloud-style password
+node dist/cli/index.js icloud --count 5
+
+# Generate user IDs
+node dist/cli/index.js userid --mode cvc --syllables 2 --count 10
+
+# JSON output
+node dist/cli/index.js pwd --len 16 --json
 ```
 
-#### Passphrase:
-```bash
-./dist/cli/index.js passphrase --words 6
-```
+## Web App Testing Checklist
 
-#### User IDs:
-```bash
-./dist/cli/index.js userid --mode cvc --count 5
-```
+### Password Tab
 
-#### JSON output:
-```bash
-./dist/cli/index.js pwd --len 20 --json
-```
+- [ ] **Strong Mode**
+  - [ ] Generate password with custom length
+  - [ ] Toggle character sets (lowercase, uppercase, digits, symbols)
+  - [ ] Custom symbols input works
+  - [ ] Entropy displays correctly
+  - [ ] Crack time estimation shows
+  - [ ] Copy button works
 
-#### iCloud passwords:
-```bash
-./dist/cli/index.js icloud --count 3
-```
+- [ ] **Easy Write Mode**
+  - [ ] Generates passwords without ambiguous characters
+  - [ ] Length input works
+  - [ ] Copy button works
 
-### 4. Test Web App Locally
+- [ ] **Easy Say Mode**
+  - [ ] Generates pronounceable passwords
+  - [ ] Syllable count works
+  - [ ] Copy button works
 
-#### Option A: Using serve (recommended)
-```bash
-npm run serve:dist
-```
-Then open: `http://localhost:3000` (or the URL shown)
+- [ ] **Passphrase (Diceware) Mode**
+  - [ ] Word count selector works
+  - [ ] Separator input works
+  - [ ] Capitalize option works
+  - [ ] Add digits option works
+  - [ ] Entropy calculation is correct (wordCount × log2(wordListSize))
+  - [ ] Copy button works
 
-#### Option B: Using the custom server
-```bash
-npm start
-```
-Then open: `http://localhost:8000`
+- [ ] **iCloud Mode**
+  - [ ] Generates iCloud-style passwords
+  - [ ] Format is correct (XXXX-XXXX-XXXX-XXXX)
+  - [ ] Copy button works
 
-## What to Test in the Web App
+### User ID Tab
 
-### Password Tab:
-- [ ] Generate strong password (default mode)
-- [ ] Change length and regenerate
-- [ ] Toggle character types (lowercase, uppercase, digits, symbols)
-- [ ] Custom symbols input
-- [ ] iCloud mode generates password
-- [ ] Easy to write mode
-- [ ] Easy to say mode
-- [ ] Passphrase (Diceware) mode
-- [ ] Entropy and crack time display updates
-- [ ] Change hardware profile and see crack time update
-- [ ] Copy button works
-- [ ] Share button generates URL
-- [ ] Clear button resets everything
+- [ ] **CVC Mode**
+  - [ ] Syllable count works
+  - [ ] Add digits option works
+  - [ ] Suffix option works
+  - [ ] Max length validation works
+  - [ ] Generate multiple IDs works
+  - [ ] Copy buttons work for each ID
 
-### User ID Tab:
-- [ ] Switch to User ID tab
-- [ ] Generate CVC user IDs
-- [ ] Generate Words user IDs
-- [ ] Change settings (syllables, words count, separator)
-- [ ] Copy individual user IDs
-- [ ] Share button generates URL
-- [ ] Reset settings button works
+- [ ] **Words Mode**
+  - [ ] Word count selector works
+  - [ ] Separator input works
+  - [ ] Capitalization options work
+  - [ ] Add digits option works
+  - [ ] Max length validation works
+  - [ ] Generate multiple IDs works
+  - [ ] Copy buttons work for each ID
 
-### Share Links:
-- [ ] Copy share link from Password tab
-- [ ] Open in new tab/window
-- [ ] Settings restore correctly
-- [ ] Password auto-generates (if `auto=1` in URL)
-- [ ] Copy share link from User ID tab
-- [ ] Settings restore correctly
-- [ ] User IDs auto-generate (if `auto=1` in URL)
+### Share Links
 
-### Persistence:
-- [ ] Change settings
-- [ ] Refresh page
-- [ ] Settings are restored
-- [ ] Active tab is restored
+- [ ] **Password Share Link**
+  - [ ] Copy share link button works
+  - [ ] Share link contains correct parameters
+  - [ ] Opening share link restores settings
+  - [ ] Share link auto-generates on page load if URL params exist
 
-## Expected Results
+- [ ] **User ID Share Link**
+  - [ ] Copy share link button works
+  - [ ] Share link contains correct parameters
+  - [ ] Opening share link restores settings
 
-✅ **Type check**: 0 errors
-✅ **Build**: Creates complete `dist/` folder
-✅ **CLI**: All commands work and produce output
-✅ **Web app**: Loads, generates passwords/IDs, shows entropy, copy/share work
-✅ **Share links**: Restore settings and auto-generate
-✅ **Persistence**: Settings saved and restored on reload
+### General UI
 
-## Troubleshooting
+- [ ] Tab switching works (Password ↔ User ID)
+- [ ] Active tab persists after page reload
+- [ ] Toast notifications appear when copying
+- [ ] Error messages display correctly
+- [ ] Generate button enables/disables based on validation
+- [ ] Clear button resets UI correctly
 
-### CLI not working?
-- Make sure you ran `npm install` and `npm run build`
-- Check file is executable: `ls -l dist/cli/index.js`
-- Try: `node dist/cli/index.js pwd --len 16`
+### Data Loading
 
-### Web app not loading?
-- Make sure you built: `npm run build`
-- Check `dist/` folder exists with files
-- Use a local server (not `file://`)
-- Check browser console for errors
+- [ ] Word lists load correctly (adjs.json, nouns.json, diceware_words.json)
+- [ ] No console errors about missing data
+- [ ] Passphrase generation uses correct word list
 
-### Type errors?
-- Run `npm run typecheck` to see all errors
-- Make sure all TypeScript files are in `src/`
+## CLI Testing Checklist
+
+- [ ] `pwd` command generates passwords
+- [ ] `passphrase` command generates passphrases
+- [ ] `icloud` command generates iCloud-style passwords
+- [ ] `userid` command generates user IDs
+- [ ] `--json` flag outputs JSON format
+- [ ] All options/arguments work correctly
+- [ ] Error handling works for invalid inputs
+
+## Browser Compatibility
+
+Test in multiple browsers:
+- [ ] Chrome/Edge
+- [ ] Firefox
+- [ ] Safari
+- [ ] Mobile browsers (iOS Safari, Chrome Mobile)
+
+## Performance
+
+- [ ] Page loads quickly
+- [ ] Password generation is instant
+- [ ] No lag when switching tabs
+- [ ] Word lists load without delay
+
+## Common Issues to Check
+
+1. **CORS errors**: Make sure you're using a local server, not `file://`
+2. **Missing word lists**: Verify `dist/data/` contains all JSON files
+3. **Module errors**: Check browser console for import errors
+4. **TypeScript errors**: Run `npm run typecheck` before building
+
+## Automated Testing (Future)
+
+Consider adding:
+- Unit tests for core generators
+- Integration tests for web app
+- E2E tests with Playwright or Cypress
